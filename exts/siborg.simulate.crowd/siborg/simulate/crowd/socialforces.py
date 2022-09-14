@@ -6,15 +6,14 @@ zero_vec = np.array([0,0,0], dtype='float64')
 
 @dataclass
 class Parameters:
+    # names from https://www.sciencedirect.com/science/article/pii/S0378437120306853
 
-    T = 0.5
+    Tau = 0.5 #(s)
     A = 2000.0
     B = 0.08
-    k = 1.2 * 100000
-    Kappa = 2.4 * 100000
-
+    kn = 1.2 * 100_000 # Kgs^-2
+    kt = 2.4 * 100_000 # Kg m^-1 s^-1
     max_speed = 20
-
     v_desired = 2.5
 
 def calc_wall_force():
@@ -24,15 +23,6 @@ def calc_wall_force():
     return force 
 
 def calc_agent_force(rr_i, ri, vv_i, pn_rr, pn_vv, pn_r):
-    ''' 
-    rr_i : position
-    ri : radius
-    vv_i : velocity
-    pn_rr : List[perceived neighbor positions]
-    pn_vv : List[perceived neighbor velocities]
-    pn_r : List[perceived neighbor radius]
-    '''
-
     #  Sum the forces of neighboring agents 
     force = zero_vec
 
@@ -40,7 +30,6 @@ def calc_agent_force(rr_i, ri, vv_i, pn_rr, pn_vv, pn_r):
     ff_ij = zero_vec
 
     rr_j =zero_vec
-    rj = 0.0
 
     #  Iterate through the neighbors and sum (f_ij)
     for j, rr_j in enumerate(pn_rr):
@@ -86,29 +75,6 @@ def agent_force(rr_i, ri, vv_i, rr_j, rj, vv_j):
     return force
 
 def goal_force(goal, i_xyz, v_i, m_i, v_desired, dt):
-    '''_summary_
-    
-    Vector3 goal, Vector3 i_xyz, Vector3 v_i, float m_i, float v_desired
-
-    Parameters
-    ----------
-    goal : _type_
-        _description_
-    i_xyz : _type_
-        _description_
-    v_i : _type_
-        _description_
-    m_i : _type_
-        _description_
-    v_desired : _type_
-        _description_
-
-    Returns
-    -------
-    _type_
-        _description_
-    '''
-
     ee_i = norm(goal - i_xyz)
     force = m_i * ( ( (v_desired * ee_i) - v_i ) / (dt) ) #  alt is to replace `dt` with  Parameters.T 
 
@@ -126,11 +92,11 @@ def proximity(r_ij, d_ij):
     return force
 
 def repulsion(r_ij, d_ij):
-    force = Parameters.k * G(r_ij, d_ij)
+    force = Parameters.kn * G(r_ij, d_ij)
     return force 
 
 def sliding(r_ij, d_ij, deltaVelocity, t_ij):
-    force = Parameters.Kappa * G(r_ij, d_ij) * (deltaVelocity * t_ij)
+    force = Parameters.kt * G(r_ij, d_ij) * (deltaVelocity * t_ij)
     return force
 
 def mag(v):
@@ -144,13 +110,6 @@ def norm(v):
     return v_norm
 
 def get_neighbors(cur, agents, pn_r):
-    ''' 
-    cur : agent position
-    agents : List[agent positions]
-    pn_r : agent perception radius 
-    
-    return : indices of neighbors
-    '''
     dist = distance.cdist([cur], agents)
     pn =  dist < pn_r
     # Index to remove is when its zero
@@ -162,16 +121,6 @@ def get_neighbors(cur, agents, pn_r):
     return pn
 
 def compute_force(rr_i, ri, vv_i, mass, goal, pn_rr, pn_vv, pn_r, dt):
-    ''' 
-    # agent is a position
-    rr_i : position
-    ri : radius
-    vv_i : velocity
-    pn_rr : List[perceived neighbor positions]
-    pn_vv : List[perceived neighbor velocities]
-    pn_r : List[perceived neighbor radius]
-    '''
-
     # Get the force for this agent to the goal
     goal = calc_goal_force(goal, rr_i, vv_i, mass, Parameters.v_desired, dt)
 

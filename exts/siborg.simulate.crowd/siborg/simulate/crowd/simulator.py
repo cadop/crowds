@@ -19,8 +19,15 @@ class Simulator:
         self.goal2 = [100,0,0]
 
         self.agent_bodies = None
-        self.nagents = 0
+        self.nagents = 25
 
+        # set pereption radius
+        self.perception_radius = 4
+        # set radius
+        self.radius = .5
+        # set mass
+        self.mass = 2
+        
         self._simulation_event = None
 
         self._callbacks()
@@ -41,13 +48,6 @@ class Simulator:
         nagents = self.nagents
 
         # randomly set position
-        # set radius
-        radius = .5
-        # set mass
-        mass = 2
-        # set pereption radius
-        perception_radius = 4
-
         self.agents_pos = np.asarray([np.array([x,x,0], dtype='float64') for x in range(nagents)])
 
         m = int(sqrt(nagents))
@@ -67,9 +67,22 @@ class Simulator:
             self.agent_bodies[i].translate(x,y,z)
 
         self.agents_vel = np.asarray([np.array([0,0,0]) for x in range(nagents)])
-        self.agents_radi = np.asarray([radius for x in range(nagents)])
-        self.agents_mass = [mass for x in range(nagents)]
-        self.agents_percept = np.asarray([perception_radius for x in range(nagents)])
+
+        self.set_radius()
+        self.set_mass()
+        self.set_perception_radius()
+
+    def set_radius(self,v=None):
+        if v: self.radius = v
+        self.agents_radi = np.asarray([self.radius for x in range(self.nagents)])
+
+    def set_mass(self,v=None):
+        if v: self.mass = v
+        self.agents_mass = [self.mass for x in range(self.nagents)]
+        
+    def set_perception_radius(self, v=None):
+        if v: self.perception_radius = v
+        self.agents_percept = np.asarray([self.perception_radius for x in range(self.nagents)])
 
     def set_goal(self, p):
         stage = omni.usd.get_context().get_stage()

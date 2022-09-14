@@ -3,8 +3,8 @@
 version = "0.0.1"
 
 # The title and description fields are primarily for displaying extension info in UI
-title = "Social Forces Simulation"
-description="An implementation of the Social Forces crowd simulation. There are physx, warp, and manual step-through options."
+title = "Crowd Simulation"
+description="An implementation of the Social Forces crowd simulation (it may or may not be correct). There is currently no environment detection. The current implementation is in PhysX. We plan to support more methods in the future, as well as more crowd simulators.  Contributions are welcome."
 
 # Path (relative to the root) or content of readme markdown file for UI.
 readme  = "docs/README.md"
@@ -13,7 +13,7 @@ readme  = "docs/README.md"
 repository = ""
 
 # One of categories for UI.
-category = "Example"
+category = "Create"
 
 # Keywords for the extension
 keywords = ["kit", "example", "crowds", "simulation"]

@@ -4,6 +4,7 @@ import omni.usd
 from pxr import Sdf
 from enum import Enum
 
+from . import window
 from . import simulator as physx_sf
 from .env import Environment
 
@@ -11,7 +12,7 @@ from .env import Environment
 class SFsim(omni.ext.IExt):
     # ext_id is current extension id. It can be used with extension manager to query additional information, like where
     # this extension is located on filesystem.
-    
+
     def on_startup(self, ext_id):
         print("[siborg.simulate.crowd] Social Forces Sim startup")
 
@@ -29,16 +30,8 @@ class SFsim(omni.ext.IExt):
         self._goal_subscriber2 = watcher2.subscribe_to_change_info_path(Sdf.Path('/World/Goal2.xformOp:translate'), self.Sim.set_goal2)
 
     def show(self):
-
         self._window = ui.Window("Social Forces Settings", width=300, height=300)
-        with self._window.frame:
-            with ui.HStack(height=20):
-
-                ui.Button("Gen Agents", clicked_fn=self.Sim.create_agents)
-                nagents = ui.IntField(height=5)
-                def set_nagents(n):
-                    self.Sim.nagents = n
-                nagents.model.add_value_changed_fn(lambda m : set_nagents(m.get_value_as_int()))
+        gui_window = window.make_window_elements(self._window, self.Sim)
 
     def unsubscribe(self):
         self.Sim._simulation_event = None
