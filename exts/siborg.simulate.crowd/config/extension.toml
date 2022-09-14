@@ -1,0 +1,45 @@
+[package]
+# Semantic Versioning is used: https://semver.org/
+version = "0.0.1"
+
+# The title and description fields are primarily for displaying extension info in UI
+title = "Social Forces Simulation"
+description="An implementation of the Social Forces crowd simulation. There are physx, warp, and manual step-through options."
+
+# Path (relative to the root) or content of readme markdown file for UI.
+readme  = "docs/README.md"
+
+# URL of the extension source repository.
+repository = ""
+
+# One of categories for UI.
+category = "Example"
+
+# Keywords for the extension
+keywords = ["kit", "example", "crowds", "simulation"]
+
+# Icon to show in the extension manager
+icon = "data/icon.png"
+
+# Preview to show in the extension manager
+preview_image = "data/preview.png"
+
+# Use omni.ui to build simple UI
+[dependencies]
+"omni.kit.uiapp" = {}
+
+# Main python module this extension provides, it will be publicly available as "import siborg.simulate.crowd".
+[[python.module]]
+name = "siborg.simulate.crowd"
+
+[[test]]
+# Extra dependencies only to be used during test run
+dependencies = [
+    "omni.kit.ui_test" # UI testing extension
+]
+
+
+[python.pipapi]
+use_online_index = true
+
+requirements = ["scipy"]
