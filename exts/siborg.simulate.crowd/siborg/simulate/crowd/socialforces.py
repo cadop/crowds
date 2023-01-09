@@ -66,7 +66,7 @@ def agent_force(rr_i, ri, vv_i, rr_j, rj, vv_j):
 
     #  t_ij "Vector of tangential relative velocity pointing from i to j." 
     #  A sliding force is applied on agent i in this direction to reduce the relative velocity.
-    t_ij = vv_j - vv_i
+    t_ij = np.cross(vv_j - vv_i, [0,0,1] )
     deltaV = np.dot(vv_j - vv_i, t_ij)
 
     #  Calculate f_ij
@@ -76,7 +76,7 @@ def agent_force(rr_i, ri, vv_i, rr_j, rj, vv_j):
 
 def goal_force(goal, i_xyz, v_i, m_i, v_desired, dt):
     ee_i = norm(goal - i_xyz)
-    force = m_i * ( ( (v_desired * ee_i) - v_i ) / (dt) ) #  alt is to replace `dt` with  Parameters.T 
+    force = m_i * ( ( (v_desired * ee_i) - v_i ) / Parameters.Tau )
 
     return force 
 
