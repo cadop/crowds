@@ -2,7 +2,7 @@ from dataclasses import dataclass
 import numpy as np
 from scipy.spatial import distance
 
-zero_vec = np.array([0,0,0], dtype='float64')
+# zero_vec = np.array([0,0,0], dtype='float64')
 
 @dataclass
 class Parameters:
@@ -19,17 +19,17 @@ class Parameters:
 def calc_wall_force():
     # TODO add wall and geometry recognition 
 
-    force = zero_vec
+    force = np.array([0,0,0], dtype='float64')
     return force 
 
 def calc_agent_force(rr_i, ri, vv_i, pn_rr, pn_vv, pn_r):
     #  Sum the forces of neighboring agents 
-    force = zero_vec
+    force = np.array([0,0,0], dtype='float64')
 
     #  Set the total force of the other agents to zero
-    ff_ij = zero_vec
+    ff_ij = np.array([0,0,0], dtype='float64')
 
-    rr_j =zero_vec
+    rr_j =np.array([0,0,0], dtype='float64')
 
     #  Iterate through the neighbors and sum (f_ij)
     for j, rr_j in enumerate(pn_rr):
