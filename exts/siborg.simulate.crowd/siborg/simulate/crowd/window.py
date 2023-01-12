@@ -1,6 +1,8 @@
 from .socialforces import Parameters
 import omni.ui as ui
 
+combo_sub = None
+
 def make_window_elements(self, _window, Sim):
 
     with _window.frame:
