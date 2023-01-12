@@ -13,8 +13,8 @@ class Parameters:
     B = 0.08
     kn = 1.2 * 100_000 # Kgs^-2
     kt = 2.4 * 100_000 # Kg m^-1 s^-1
-    max_speed = 20
-    v_desired = 2.5
+    max_speed = 10
+    v_desired = 3.5
 
 def calc_wall_force():
     # TODO add wall and geometry recognition 

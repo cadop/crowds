@@ -1,7 +1,7 @@
 from .socialforces import Parameters
 import omni.ui as ui
 
-def make_window_elements(_window, Sim):
+def make_window_elements(self, _window, Sim):
 
     with _window.frame:
         with ui.VStack():
@@ -65,3 +65,31 @@ def make_window_elements(_window, Sim):
                 nagents = ui.IntField(height=5)
                 nagents.model.set_value(Sim.nagents)
                 nagents.model.add_value_changed_fn(lambda m : setattr(Sim, 'nagents', m.get_value_as_int()))
+
+            with ui.HStack(height=20):
+                options = ["GeomPoints Sim Subscriber", 
+                            "GeomPoints User Subscriber", 
+                            "Rigid Body Sim Subscriber", 
+                            "Rigid Body User Subscriber"]
+
+                combo_model: ui.AbstractItemModel = ui.ComboBox(0, *options).model
+
+                def combo_changed(item_model: ui.AbstractItemModel, item: ui.AbstractItem):
+                    value_model = item_model.get_item_value_model(item)
+                    current_index = value_model.as_int
+                    option = options[current_index]
+                    print(f"Selected '{option}' at index {current_index}.")
+                
+                combo_sub = combo_model.subscribe_item_changed_fn(combo_changed)
+
+                def clicked():
+                    value_model = combo_model.get_item_value_model()
+                    current_index = value_model.as_int
+                    option = options[current_index]
+                    print(f"Button Clicked! Selected '{option}' at index {current_index}.")
+                    self.api_example(current_index)
+
+                ui.Button("Start Demo", width=5, clicked_fn=clicked)
+
+            with ui.HStack(height=10):
+                pass 
