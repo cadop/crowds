@@ -69,26 +69,31 @@ def make_window_elements(self, _window, Sim):
             #     nagents.model.add_value_changed_fn(lambda m : setattr(Sim, 'nagents', m.get_value_as_int()))
 
             with ui.HStack(height=20):
-                options = ["GeomPoints", "RigidBody"]
+                ui.Label('Use Rigid Body') 
+                RigidBody = ui.CheckBox()
+                RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'rigid_flag', m.get_value_as_bool()))
+                RigidBody.model.set_value(False)
 
-                combo_model: ui.AbstractItemModel = ui.ComboBox(0, *options).model
+                # options = ["GeomPoints", "RigidBody"]
 
-                def combo_changed(item_model: ui.AbstractItemModel, item: ui.AbstractItem):
-                    value_model = item_model.get_item_value_model(item)
-                    current_index = value_model.as_int
-                    option = options[current_index]
-                    print(f"Selected '{option}' at index {current_index}.")
+                # combo_model: ui.AbstractItemModel = ui.ComboBox(0, *options).model
+
+                # def combo_changed(item_model: ui.AbstractItemModel, item: ui.AbstractItem):
+                #     value_model = item_model.get_item_value_model(item)
+                #     current_index = value_model.as_int
+                #     option = options[current_index]
+                #     print(f"Selected '{option}' at index {current_index}.")
                 
-                combo_sub = combo_model.subscribe_item_changed_fn(combo_changed)
+                # combo_sub = combo_model.subscribe_item_changed_fn(combo_changed)
 
-                def clicked():
-                    value_model = combo_model.get_item_value_model()
-                    current_index = value_model.as_int
-                    option = options[current_index]
-                    print(f"Button Clicked! Selected '{option}' at index {current_index}.")
-                    self.api_example(current_index)
+                # def clicked():
+                #     value_model = combo_model.get_item_value_model()
+                #     current_index = value_model.as_int
+                #     option = options[current_index]
+                #     print(f"Button Clicked! Selected '{option}' at index {current_index}.")
+                #     self.api_example(current_index)
 
-                ui.Button("Start Demo", width=5, clicked_fn=clicked)
+                ui.Button("Start Demo", width=5, clicked_fn=self.api_example)
 
             with ui.HStack(height=10):
                 pass 

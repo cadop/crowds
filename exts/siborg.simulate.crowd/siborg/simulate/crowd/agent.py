@@ -19,8 +19,14 @@ class Agent:
 
     def sphere(self, stage):
 
-        # Create torus mesh used as the 'skin mesh' for the deformable body
-        _, skinMeshPath = omni.kit.commands.execute("CreateMeshPrim", prim_type="Sphere")
+        # Create sphere representing agent
+        _, skinMeshPath = omni.kit.commands.execute("CreateMeshPrim", 
+                                                    prim_type="Sphere", 
+                                                    prim_path='/World/Agents/Sphere', 
+                                                    prepend_default_prim=True)
+
+        # omni.kit.commands.execute("MovePrim", path_from="/World/Sphere", path_to="/World/Agents/Sphere") 
+
         skin_mesh = UsdGeom.Mesh.Get(stage, skinMeshPath)
         prim = skin_mesh.GetPrim()
 

@@ -1,7 +1,8 @@
 import omni
-from pxr import UsdGeom, Gf
+import omni.kit.commands
+from pxr import Usd, Gf
+from pxr import UsdGeom
 from pxr import UsdPhysics, PhysxSchema
-
 class Environment:
     
     def __init__(self):
@@ -25,5 +26,21 @@ class Environment:
 
         physxSceneAPI = PhysxSchema.PhysxSceneAPI.Apply(self.scene.GetPrim())
         physxSceneAPI.CreateEnableCCDAttr().Set(True)
+
+        # Check if there is a physics groundplane in the scene
+        plane_path = self.defaultPrimPath+"/GroundPlane"
+
+        if self._stage.GetPrimAtPath(plane_path).IsValid():
+            pass
+        else:
+            # If not, make one
+            omni.kit.commands.execute('AddGroundPlaneCommand',
+                                        stage=self._stage,
+                                        planePath='/GroundPlane',
+                                        axis=UsdGeom.GetStageUpAxis(stage),
+                                        size=1.0,
+                                        position=Gf.Vec3f(0.0, 0.0, 0.0),
+                                        color=Gf.Vec3f(0.5, 0.5, 0.5))
+
 
 

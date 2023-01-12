@@ -16,40 +16,54 @@ class SFsim(omni.ext.IExt):
 
         self.init_scene()
         self.show() 
+        self.rigid_flag = False
+
+    def show(self):
+        self._window = ui.Window("Social Forces Demo Settings", width=300, height=220)
+        gui_window = window.make_window_elements(self, self._window, self.Sim)
+
+    def create_goal(self):
+
+        omni.kit.commands.execute('CreatePrimWithDefaultXform',
+                                    prim_type='Xform',
+                                    prim_path='/World/CrowdGoal',
+                                    attributes={},
+                                    select_new_prim=True)
+
+        omni.kit.commands.execute('MovePrim',
+                                    path_from='/World/Xform',
+                                    path_to='/World/CrowdGoal',
+                                    destructive=False)
 
         # Code snippet from Mati 
         # subscribe to changes on a prim
         watcher = omni.usd.get_watcher()
-        self._goal_subscriber = watcher.subscribe_to_change_info_path(Sdf.Path('/World/Goal.xformOp:translate'), 
+        self._goal_subscriber = watcher.subscribe_to_change_info_path(Sdf.Path('/World/CrowdGoal.xformOp:translate'), 
                                                                       self.Sim.set_xform_goal) 
-
-    def show(self):
-        self._window = ui.Window("Social Forces Demo Settings", width=300, height=300)
-        gui_window = window.make_window_elements(self, self._window, self.Sim)
 
     def init_scene(self):
         self.World = Environment() 
         self.Sim = simulator.Simulator()
+        # Create the goal
+        self.create_goal()
 
-    def api_example(self, v):
+    def api_example(self):
         self.Sim._unregister()
 
-        if v == 0: rigid_flag = False
-        elif v == 1: rigid_flag = True
-
         self.Sim = simulator.Simulator(self.World)
-        self.demo_api_call(self.Sim, rigid_flag)
+        self.demo_api_call(self.Sim)
 
         # Reset the demo Goal xform watcher to reference the new simulator instance
         self.reset_goal_watcher()
     
-    def demo_api_call(self, Sim, rigidbody):
+    def demo_api_call(self, Sim):
         # Use the builtin function for demo agents
-        Sim.rigidbody = rigidbody 
-        Sim.init_demo_agents(m=3,n=4,s=1.1)
+        Sim.rigidbody = self.rigid_flag 
+        Sim.init_demo_agents(m=2,n=2,s=1.1)
 
-        Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
-        Sim.set_geompoints() # update the usdgeom points for visualization
+        if not Sim.rigidbody:
+            Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
+            Sim.set_geompoints() # update the usdgeom points for visualization
         
         # tell simulator to update positions after each run
         Sim.update_agents_sim = True 
@@ -64,7 +78,7 @@ class SFsim(omni.ext.IExt):
 
         # subscribe to changes on a prim
         watcher = omni.usd.get_watcher()
-        self._goal_subscriber = watcher.subscribe_to_change_info_path(Sdf.Path('/World/Goal.xformOp:translate'), 
+        self._goal_subscriber = watcher.subscribe_to_change_info_path(Sdf.Path('/World/CrowdGoal.xformOp:translate'), 
                                                                       self.Sim.set_xform_goal) 
 
     def on_shutdown(self):
