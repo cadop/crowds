@@ -20,7 +20,7 @@ class Environment:
         UsdGeom.SetStageMetersPerUnit(stage, 1.0)
 
         self.scene = UsdPhysics.Scene.Define(stage, self.defaultPrimPath + "/physicsScene")
-        # self.scene.CreateGravityDirectionAttr().Set(Gf.Vec3f(0.0, 0.0, -1.0))
+        self.scene.CreateGravityDirectionAttr().Set(Gf.Vec3f(0.0, 0.0, -1.0))
         self.scene.CreateGravityMagnitudeAttr().Set(9.81)
 
         physxSceneAPI = PhysxSchema.PhysxSceneAPI.Apply(self.scene.GetPrim())
