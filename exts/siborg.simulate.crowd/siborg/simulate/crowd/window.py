@@ -43,36 +43,33 @@ def make_window_elements(self, _window, Sim):
                 kt.model.add_value_changed_fn(lambda m : setattr(Parameters, 'kt', m.get_value_as_float()))
                 kt.model.set_value(Parameters.kt)
 
-            with ui.HStack():
-                ui.Label('Agent Mass')
-                kt = ui.FloatField(height=20)
-                kt.model.add_value_changed_fn(lambda m : setattr(Sim, 'mass', m.get_value_as_float()))
-                kt.model.set_value(Sim.mass)
+            # with ui.HStack():
+            #     ui.Label('Agent Mass')
+            #     kt = ui.FloatField(height=20)
+            #     kt.model.add_value_changed_fn(lambda m : setattr(Sim, 'mass', m.get_value_as_float()))
+            #     kt.model.set_value(Sim.mass)
 
-            with ui.HStack():
-                ui.Label('Agent Radius')
-                kt = ui.FloatField(height=20)
-                kt.model.add_value_changed_fn(lambda m : Sim.set_radius(m.get_value_as_float()))
-                kt.model.set_value(Sim.radius)
+            # with ui.HStack():
+            #     ui.Label('Agent Radius')
+            #     kt = ui.FloatField(height=20)
+            #     kt.model.add_value_changed_fn(lambda m : Sim.set_radius(m.get_value_as_float()))
+            #     kt.model.set_value(Sim.radius)
 
-            with ui.HStack():
-                ui.Label('Agent Perception Radius')
-                kt = ui.FloatField(height=20)
-                kt.model.add_value_changed_fn(lambda m : setattr(Sim, 'perception_radius', m.get_value_as_float()))
-                kt.model.set_value(Sim.perception_radius)
+            # with ui.HStack():
+            #     ui.Label('Agent Perception Radius')
+            #     kt = ui.FloatField(height=20)
+            #     kt.model.add_value_changed_fn(lambda m : setattr(Sim, 'perception_radius', m.get_value_as_float()))
+            #     kt.model.set_value(Sim.perception_radius)
+
+            # with ui.HStack(height=20):
+
+            #     ui.Button("Gen Agents", clicked_fn=Sim.create_agents)
+            #     nagents = ui.IntField(height=5)
+            #     nagents.model.set_value(Sim.nagents)
+            #     nagents.model.add_value_changed_fn(lambda m : setattr(Sim, 'nagents', m.get_value_as_int()))
 
             with ui.HStack(height=20):
-
-                ui.Button("Gen Agents", clicked_fn=Sim.create_agents)
-                nagents = ui.IntField(height=5)
-                nagents.model.set_value(Sim.nagents)
-                nagents.model.add_value_changed_fn(lambda m : setattr(Sim, 'nagents', m.get_value_as_int()))
-
-            with ui.HStack(height=20):
-                options = ["GeomPoints Sim Subscriber", 
-                            "GeomPoints User Subscriber", 
-                            "Rigid Body Sim Subscriber", 
-                            "Rigid Body User Subscriber"]
+                options = ["GeomPoints", "RigidBody"]
 
                 combo_model: ui.AbstractItemModel = ui.ComboBox(0, *options).model
 
