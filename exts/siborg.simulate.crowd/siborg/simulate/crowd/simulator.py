@@ -20,7 +20,7 @@ class Simulator:
         self.goals = None
 
         self.agent_bodies = None
-        self.nagents = 25
+        self.nagents = 1
 
         # set pereption radius
         self.perception_radius = 3
@@ -33,11 +33,25 @@ class Simulator:
         
         self._simulation_event = None
 
+        # Will use a physics scene
         self.rigidbody = False
 
         # Tracks if user wants to update agent position on each sim step
         self.update_agents_sim = False 
         self.update_viz = False
+
+        self._get_world_up()
+
+    def _get_world_up(self):
+        stage = omni.usd.get_context().get_stage()
+
+        up = UsdGeom.GetStageUpAxis(stage)
+        
+        if up =='X': self.world_up  = 0
+        if up =='Y': self.world_up  = 1
+        if up =='Z': self.world_up  = 2
+
+        return 
 
     def register_simulation(self):
         self._callbacks()
@@ -63,24 +77,42 @@ class Simulator:
         self._dt = dt
         self.run()
 
-    def init_demo_agents(self):
+    def init_demo_agents(self, m=5, n=5, s=1):
+        '''Create a set of demo agents
+
+        Parameters
+        ----------
+        m : int, optional
+            number of agents in row, by default 5
+        n : int, optional
+            number of agents in col, by default 5
+        s : int, optional
+            spacing between agents, by default 1
+        '''
+
         # Initialize agents in a grid for testing
-        # randomly set position
-        self.agents_pos = np.asarray([np.array([x,x,0], dtype='float64') for x in range(self.nagents)])
-        m = int(sqrt(self.nagents))
-        n = int(sqrt(self.nagents))
-        s = 1
-        self.agents_pos = np.asarray([ np.array([(s/2) + (x * s), (s/2) + (y * s), 0]) for x in range(m) for y in range(n)])
+        self.agents_pos = np.asarray([
+                                      np.array([(s/2) + (x * s), (s/2) + (y * s), 0], dtype=np.double) 
+                                      for x in range(m) 
+                                      for y in range(n)
+                                    ])
+
+        self.agents_pos[:, [2, self.world_up]] = self.agents_pos[:, [self.world_up, 2]]
+
         self.nagents = len(self.agents_pos)
+
         ####
+        if self.rigidbody:
+            self.agent_bodies = [Agent() for x in range(self.nagents)]
+            for i in range(len(self.agent_bodies)):
+                x,y,z = self.agents_pos[i]
+                self.agent_bodies[i].translate(x,y,z)
+        else:
+            self.agent_bodies = [None for x in range(self.nagents)]
 
-        self.agent_bodies = [Agent() for x in range(self.nagents)]
+        self.goals = np.asarray([self._goal for x in range(self.nagents)], dtype=np.double)
 
-        for i in range(len(self.agent_bodies)):
-            x,y,z = self.agents_pos[i]
-            self.agent_bodies[i].translate(x,y,z)
-
-        self.agents_vel = np.asarray([np.array([0,0,0]) for x in range(self.nagents)])
+        self.agents_vel = np.asarray([np.array([0,0,0],dtype=np.double) for x in range(self.nagents)])
 
         self.set_radius()
         self.set_mass()
@@ -117,7 +149,7 @@ class Simulator:
             self.goals = goals
 
         # Set the agent positions
-        if pos:
+        if pos is not None:
             self.agents_pos = np.asarray(pos, dtype=np.double)
         else:
             self.agents_pos = np.asarray([np.array(0,0,0, dtype=np.double) for x in range(self.nagents)])
@@ -277,7 +309,7 @@ class Simulator:
                                                 self._dt)
 
             # remove z (up) forces
-            _force[2] = 0
+            _force[self.world_up] = 0
 
             # Store all forces to be applied to agents
             force_list.append(_force)

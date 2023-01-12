@@ -4,6 +4,8 @@ import omni.usd
 from pxr import Sdf
 from enum import Enum
 
+import numpy as np
+
 from . import window
 from . import simulator as physx_sf
 from .env import Environment
@@ -97,7 +99,6 @@ class SFsim(omni.ext.IExt):
         # Reset the demo Goal xform watcher
         self.reset_goal_watcher()
 
-
     def sim_registration(self):
         self._simulation_event = get_physx_interface().subscribe_physics_step_events(self._on_update)
 
@@ -126,14 +127,22 @@ class SFsim(omni.ext.IExt):
         # Sim = physx_sf.Simulator()
         nagents = 10
         # Some trickery to make a grid of agents and get the cloest number of agents to an even grid
-        pos = [ [(1/2) + (x * 1), (1/2) + (y * 1), 0] for x in range(int(sqrt(nagents))) for y in range(int(sqrt(nagents)))]
+        pos = np.asarray([
+                          np.array([(1/2) + (x), (1/2) + (y), 0], dtype=np.double) 
+                          for x in range(int(sqrt(nagents))) 
+                          for y in range(int(sqrt(nagents)))
+                        ])
+        pos[:, [2, Sim.world_up]] = pos[:, [Sim.world_up, 2]]
         nagents = len(pos)
 
         Sim.create_agents(num=nagents, goals=[[10,10,0]], pos=pos) # initialize a set of agents
         Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
-        
-        Sim.update_agents_sim = True # tell simulator to update positions after each run
-        Sim.update_viz = False # don't have the simulator update the geompoints, we do it ourselves
+
+        # tell simulator to update positions after each run, if not need to call Sim.integrate()
+        Sim.update_agents_sim = True
+        # don't have the simulator update the geompoints, we do it ourselves
+        Sim.update_viz = False 
+
         # ##  You can put this in an on_update event
         # # Run one step of simulation
         # forces = Sim.run() # don't need to use forces since we told simulator to update
@@ -144,16 +153,20 @@ class SFsim(omni.ext.IExt):
     def api_usage_callback(self, Sim):
         # Example of using API
         # Sim = physx_sf.Simulator()
-        nagents = 10
-        # Some trickery to make a grid of agents and get the cloest number of agents to an even grid
-        pos = [ [(1/2) + (x * 1), (1/2) + (y * 1), 0] for x in range(int(sqrt(nagents))) for y in range(int(sqrt(nagents)))]
-        nagents = len(pos)
+        # nagents = 10
+        # # Some trickery to make a grid of agents and get the cloest number of agents to an even grid
+        # pos = [ [(1/2) + (x * 1), (1/2) + (y * 1), 0] for x in range(int(sqrt(nagents))) for y in range(int(sqrt(nagents)))]
+        # nagents = len(pos)
+        # Sim.create_agents(num=nagents, goals=[[10,10,0]], pos=pos) # initialize a set of agents
 
-        Sim.create_agents(num=nagents, goals=[[10,10,0]], pos=pos) # initialize a set of agents
+        Sim.init_demo_agents()
+
         Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
         Sim.set_geompoints() # update the usdgeom points for visualization
         
-        Sim.update_agents_sim = True # tell simulator to update positions after each run
+        # tell simulator to update positions after each run, if not need to call Sim.integrate()
+        Sim.update_agents_sim = True 
+        # tell simulator to handle the update visualization
         Sim.update_viz = True 
 
         # Register the simulation to updates, and the Sim will handle it from here
@@ -168,13 +181,21 @@ class SFsim(omni.ext.IExt):
         Sim.rigidbody = True # use rigid bodies
         nagents = 10
         # Some trickery to make a grid of agents and get the cloest number of agents to an even grid
-        pos = [ [(1/2) + (x * 1), (1/2) + (y * 1), 0] for x in range(int(sqrt(nagents))) for y in range(int(sqrt(nagents)))]
+        pos = np.asarray([
+                          np.array([(1/2) + (x), (1/2) + (y), 0], dtype=np.double) 
+                          for x in range(int(sqrt(nagents))) 
+                          for y in range(int(sqrt(nagents)))
+                        ])
+        pos[:, [2, Sim.world_up]] = pos[:, [Sim.world_up, 2]]
         nagents = len(pos)
 
         Sim.create_agents(num=nagents, goals=[[10,10,0]], pos=pos) # initialize a set of agents
 
-        Sim.update_agents_sim = True # tell simulator to update positions after each run
-        Sim.update_viz = False # don't have the simulator update the geompoints, we do it ourselves
+        # tell simulator to update positions after each run, if not need to call Sim.integrate()
+        Sim.update_agents_sim = True
+        # don't have the simulator update the geompoints, we do it ourselves
+        Sim.update_viz = False 
+
         ##  You can put this in an on_update event
         # # Run one step of simulation
         # Sim.run()
@@ -185,12 +206,23 @@ class SFsim(omni.ext.IExt):
         Sim.rigidbody = True # use rigid bodies
         nagents = 10
         # Some trickery to make a grid of agents and get the cloest number of agents to an even grid
-        pos = [ [(1/2) + (x * 1), (1/2) + (y * 1), 0] for x in range(int(sqrt(nagents))) for y in range(int(sqrt(nagents)))]
+        pos = np.asarray([
+                          np.array([(1/2) + (x), (1/2) + (y), 0], dtype=np.double) 
+                          for x in range(int(sqrt(nagents))) 
+                          for y in range(int(sqrt(nagents)))
+                        ])
+        pos[:, [2, Sim.world_up]] = pos[:, [Sim.world_up, 2]]
+
         nagents = len(pos)
 
         Sim.create_agents(num=nagents, goals=[[10,10,0]], pos=pos) # initialize a set of agents
         # Register the simulation to updates, and the Sim will handle it from here
         Sim.register_simulation()
+
+        # tell simulator to update positions after each run, if not need to call Sim.integrate()
+        Sim.update_agents_sim = True 
+        # tell simulator to handle the update visualization
+        Sim.update_viz = True 
 
         # You will need to unregister at the end with
         # Sim._simulation_event.unsubscribe()
