@@ -6,7 +6,7 @@ from pxr import Sdf
 from . import window
 from . import simulator
 from .env import Environment
-
+ 
 class SFsim(omni.ext.IExt):
     # ext_id is current extension id. It can be used with extension manager to query
     #  additional information, like where this extension is located on filesystem.
@@ -59,7 +59,7 @@ class SFsim(omni.ext.IExt):
     def demo_api_call(self, Sim):
         # Use the builtin function for demo agents
         Sim.rigidbody = self.rigid_flag 
-        Sim.init_demo_agents(m=2,n=2,s=1.1)
+        Sim.init_demo_agents(m=3,n=3,s=1.1)
 
         if not Sim.rigidbody:
             Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
