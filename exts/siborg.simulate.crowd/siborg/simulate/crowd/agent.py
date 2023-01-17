@@ -12,20 +12,21 @@ class Agent:
         self.skin_mesh , self.skinMeshPath = self.sphere(stage)
         # Set a rigid body material and collider
         self.set_material(stage, self.skinMeshPath)
-
+ 
         # Add a translation operator and set it to zero position
-        self.translateOp = self.skin_mesh.AddTranslateOp()  
+        # Since we changed to create this object with an xform, don't need to add, just get it. 
+        # self.translateOp = self.skin_mesh.AddTranslateOp()  
+
+        self.translateOp = UsdGeom.XformOp(self.skin_mesh.GetPrim().GetAttribute("xformOp:translate"))
         self.translateOp.Set(Gf.Vec3f(0.0, 0.0, 0.0))
 
     def sphere(self, stage):
 
         # Create sphere representing agent
-        _, skinMeshPath = omni.kit.commands.execute("CreateMeshPrim", 
+        _, skinMeshPath = omni.kit.commands.execute("CreateMeshPrimWithDefaultXform", 
                                                     prim_type="Sphere", 
                                                     prim_path='/World/Agents/Sphere', 
                                                     prepend_default_prim=True)
-
-        # omni.kit.commands.execute("MovePrim", path_from="/World/Sphere", path_to="/World/Agents/Sphere") 
 
         skin_mesh = UsdGeom.Mesh.Get(stage, skinMeshPath)
         prim = skin_mesh.GetPrim()
@@ -41,7 +42,7 @@ class Agent:
         self.rigidBodyAPI.CreateAngularVelocityAttr().Set(angularVelocity)
 
         self.massAPI = UsdPhysics.MassAPI.Apply(prim)
-        self.massAPI.CreateMassAttr(1)
+        self.massAPI.CreateMassAttr(2)
         self.massAPI.CreateCenterOfMassAttr().Set(Gf.Vec3f(0.0, 0.0, 0.0))
 
         return skin_mesh, skinMeshPath
