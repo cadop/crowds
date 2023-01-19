@@ -83,10 +83,8 @@ class Simulator(CrowdConfig):
             a subscribed path 
         ''' 
         stage = omni.usd.get_context().get_stage()
-
         prim = stage.GetPrimAtPath(str(p).split('.')[0])
         goal_point = omni.usd.utils.get_world_transform_matrix(prim).ExtractTranslation()
-
         # Set agent destination
         self.goals = np.asarray([goal_point for x in range(self.nagents)])
             
@@ -115,10 +113,8 @@ class Simulator(CrowdConfig):
     def compute_step(self, agent):
 
         # Set the model to PAM if asked
-        if self.use_pam:
-            model = pam
-        else:
-            model = socialforces
+        if self.use_pam: model = pam
+        else:            model = socialforces
 
         # Get the neighbors of this agent to use in computing forces
         pn = model.get_neighbors(self.agents_pos[agent], 
