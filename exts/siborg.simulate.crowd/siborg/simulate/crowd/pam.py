@@ -1,14 +1,13 @@
-from dataclasses import dataclass
-import numpy as np
-from scipy.spatial import distance
-
-
 ''' Python implementation of the Predictive Avoidance Model (PAM)
     from 
     A Predictive Collision Avoidance Model for Pedestrian Simulation,
     I. Karamouzas, P. Heil, P. van Beek, M. H. Overmars
     Motion in Games (MIG 2009), Lecture Notes in Computer Science (LNCS), Vol. 5884, 2009
 '''
+
+from dataclasses import dataclass
+import numpy as np
+from scipy.spatial import distance
 
 @dataclass
 class Parameters:
@@ -49,6 +48,7 @@ class Parameters:
     w_factor = 0.8
     # Noise flag (should noise be added to the movement action)
     noise = False 
+    force_clamp = 40.0
     
     # *private* Ideal wall distance
     _ideal_wall_dist = agent_radius + wall_dist
@@ -105,46 +105,41 @@ def get_neighbors(cur, agents, pn_r):
     return pn
 
 
-def compute_force(rr_i, ri, vv_i, mass, goal, pn_rr, pn_vv, pn_r, dt):
-    # will store a list of tuples, each tuple is (tc, agent)
-    t_pairs = []
-    force_count = 0
+def wall_force(obstacles, rr_i, closest_point, SAFE, add_force):
+
+    for i in range(len(obstacles)):
+        # Step 1: get closest point on obstacle to agent
+        # [[ Need python code for this in simulation ]]
+        
+        n_w = rr_i - closest_point
+        d_w = mag(n_w) * mag(n_w)
+
+        if (d_w < SAFE):
+            d_w = np.sqrt(d_w)
+            if (d_w > 0):
+                n_w /= d_w
+            if ((d_w - Parameters.agent_radius) < 0.001):
+                dist_min_radius =  0.001
+            else: 
+                d_w - Parameters.agent_radius
+            obstacle_force = (Parameters._ideal_wall_dist - d_w) / np.pow(dist_min_radius, Parameters.wall_steepness) * n_w
+            add_force(obstacle_force)
     
+
+def calc_goal_force(goal, rr_i, vv_i):
     # Preferred velocity is preferred speed in direction of goal
     preferred_vel = Parameters.preferred_vel * norm(goal - rr_i)
     
     # Goal force, is always added
     goal_force = (preferred_vel - vv_i) / Parameters.ksi
-    
-    # Desuired values if all was going well in an empty world
-    desired_vel = vv_i + goal_force * dt
-    desired_speed = mag(desired_vel)
 
-    # Handle obstacles
-    obstacle_force = np.array([0, 0, 0], dtype='float64')
-    
-    # for i in range(len(obstacles)):
-    #     # Step 1: get closest point on obstacle to agent
-    #     # [[ Need python code for this in simulation ]]
-        
-    #     n_w = rr_i - closest_point
-    #     d_w = mag(n_w) * mag(n_w)
+    return goal_force
 
-    #     if (d_w < SAFE):
-    #         d_w = np.sqrt(d_w)
-    #         if (d_w > 0):
-    #             n_w /= d_w
-    #         if ((d_w - Parameters.agent_radius) < 0.001):
-    #             dist_min_radius =  0.001
-    #         else: 
-    #             d_w - Parameters.agent_radius
-    #         obstacle_force = (Parameters._ideal_wall_dist - d_w) / np.pow(dist_min_radius, Parameters.wall_steepness) * n_w
-    #         add_force(obstacle_force)
-    
-    
+def collision_param(rr_i, vv_i, desired_vel, pn_rr, pn_vv, pn_r):
     # Keep track of if we ever enter a collision state
     agent_collision = False
-    
+
+    t_pairs = []
     # Handle agents tc values for predictive forces among neighbours
     for j, rr_j in enumerate(pn_rr):
         #  Get position and velocity of neighbor agent
@@ -171,11 +166,21 @@ def compute_force(rr_i, ri, vv_i, mass, goal, pn_rr, pn_vv, pn_r, dt):
                 elif tc < t_pairs[0][0]:
                     t_pairs.pop()
                     t_pairs.append((tc, j))
-                    
-    # This will be all the other forces, added in a particular way
-    driving_force = np.array([0, 0, 0], dtype='float64')
-    
+
+    return t_pairs, agent_collision
+
+def predictive_force(rr_i, desired_vel, desired_speed, pn_rr, pn_vv, pn_r, vv_i):
     # Handle predictive forces// Predictive forces
+
+    # Setup collision parameters
+    t_pairs, agent_collision = collision_param(rr_i, vv_i, desired_vel, pn_rr, pn_vv, pn_r)
+
+    # This will be all the other forces, added in a particular way
+    steering_force = np.array([0, 0, 0], dtype='float64')
+
+    # will store a list of tuples, each tuple is (tc, agent)
+    force_count = 0
+
     for t_pair in t_pairs:
         # Nice variables from the t_pair tuples
         t = t_pair[0]
@@ -203,16 +208,40 @@ def compute_force(rr_i, ri, vv_i, mass, goal, pn_rr, pn_vv, pn_r, dt):
             
         force_mag *= np.power( (1.0 if agent_collision else Parameters.w_factor), force_count)
         force_count += 1
-        driving_force = force_mag * force_dir
+        steering_force = force_mag * force_dir
+
+    return steering_force
+
+def add_noise(steering_force):
+    angle = np.random.uniform(0.0, 1.0) * 2.0 * np.pi
+    dist = np.random.uniform(0.0, 1.0) * 0.001
+    steering_force += dist * np.array([np.cos(angle),np.sin(angle),0], dtype='float64')
+
+    return steering_force
+
+def compute_force(rr_i, ri, vv_i, mass, goal, pn_rr, pn_vv, pn_r, dt):
+
+    # Get the goal force
+    goal_force = calc_goal_force(goal, rr_i, vv_i)
+
+    # Desired values if all was going well in an empty world
+    desired_vel = vv_i + goal_force * dt
+    desired_speed = mag(desired_vel)
+
+    # Get obstacle (wall) forces
+    obstacle_force = np.array([0, 0, 0], dtype='float64')
+    #@TODO 
+    # obstacle_force = wall_force()
+    
+    # Get predictive steering forces
+    steering_force = predictive_force(rr_i, desired_vel, desired_speed, pn_rr, pn_vv, pn_r, vv_i)
 
     # Add noise for reducing deadlocks adding naturalness
     if Parameters.noise:
-        angle = np.random.uniform(0.0, 1.0) * 2.0 * np.pi
-        dist = np.random.uniform(0.0, 1.0) * 0.001
-        driving_force += dist * np.array([np.cos(angle),np.sin(angle),0], dtype='float64')
+        steering_force = add_noise(steering_force)
 
-    # Clamp driving force, 40 is arbitrary 
-    if mag(driving_force) > 40.0:
-        driving_force = norm(driving_force) * 40.0
+    # Clamp driving force
+    if mag(steering_force) > Parameters.force_clamp:
+        steering_force = norm(steering_force) *  Parameters.force_clamp
     
-    return goal_force + obstacle_force + driving_force
+    return goal_force + obstacle_force + steering_force
