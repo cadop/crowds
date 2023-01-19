@@ -29,9 +29,9 @@ class Parameters:
     # Maximum acceleration ? Used here in this implementation or in sim/physics?
     max_accel = 20.0
     # Maximum speed
-    max_speed = 1.0
+    max_speed = 7
     # Preferred Speed
-    preferred_vel = 1.3
+    preferred_vel = 2.5
     # Goal acquired radius 
     goal_radius = 1.0
     # Time Horizon
