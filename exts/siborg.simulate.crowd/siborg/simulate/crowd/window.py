@@ -43,6 +43,12 @@ def make_window_elements(self, _window, Sim):
                 kt.model.add_value_changed_fn(lambda m : setattr(Parameters, 'kt', m.get_value_as_float()))
                 kt.model.set_value(Parameters.kt)
 
+            with ui.HStack():
+                ui.Label('Agent grid (nxn)')
+                agent_grid = ui.IntField(height=20)
+                agent_grid.model.add_value_changed_fn(lambda m : setattr(self, 'grid_size', m.get_value_as_int()))
+                agent_grid.model.set_value(3)
+
             # with ui.HStack():
             #     ui.Label('Agent Mass')
             #     kt = ui.FloatField(height=20)
