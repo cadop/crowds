@@ -69,13 +69,13 @@ def make_window_elements(self, _window, Sim):
             #     nagents.model.add_value_changed_fn(lambda m : setattr(Sim, 'nagents', m.get_value_as_int()))
 
             with ui.HStack(height=20):
-                ui.Label('Use Rigid Body') 
-                RigidBody = ui.CheckBox(width=3)
+                ui.Label('Use Rigid Body', width=5) 
+                RigidBody = ui.CheckBox(width=30)
                 RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'rigid_flag', m.get_value_as_bool()))
                 RigidBody.model.set_value(False)
 
-                ui.Label('Use PAM') 
-                SFModel = ui.CheckBox(width=3)
+                ui.Label('Use PAM', width=20) 
+                SFModel = ui.CheckBox(width=30)
                 SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'pam_flag', m.get_value_as_bool()))
                 SFModel.model.set_value(False)
 
