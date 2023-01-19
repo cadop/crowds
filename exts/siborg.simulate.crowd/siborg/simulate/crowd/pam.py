@@ -30,7 +30,7 @@ class Parameters:
     # Maximum acceleration ? Used here in this implementation or in sim/physics?
     max_accel = 20.0
     # Maximum speed
-    max_speed = 2.0
+    max_speed = 1.0
     # Preferred Speed
     preferred_vel = 1.3
     # Goal acquired radius 
@@ -211,7 +211,7 @@ def compute_force(rr_i, ri, vv_i, mass, goal, pn_rr, pn_vv, pn_r, dt):
         dist = np.random.uniform(0.0, 1.0) * 0.001
         driving_force += dist * np.array([np.cos(angle),np.sin(angle),0], dtype='float64')
 
-    # Clamp drivign force, 40 is arbitrary 
+    # Clamp driving force, 40 is arbitrary 
     if mag(driving_force) > 40.0:
         driving_force = norm(driving_force) * 40.0
     

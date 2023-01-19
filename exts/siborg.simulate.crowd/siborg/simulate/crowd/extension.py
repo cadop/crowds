@@ -17,6 +17,7 @@ class SFsim(omni.ext.IExt):
         self.init_scene()
         self.show() 
         self.rigid_flag = False
+        self.pam_flag = False
 
     def show(self):
         self._window = ui.Window("Social Forces Demo Settings", width=300, height=220)
@@ -64,7 +65,8 @@ class SFsim(omni.ext.IExt):
         if not Sim.rigidbody:
             Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
             Sim.set_geompoints() # update the usdgeom points for visualization
-        
+        if self.pam_flag:
+            Sim.use_pam = True
         # tell simulator to update positions after each run
         Sim.update_agents_sim = True 
         # tell simulator to handle the update visualization

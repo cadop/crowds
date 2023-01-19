@@ -7,6 +7,7 @@ from pxr import UsdGeom
 
 from siborg.simulate.crowd.crowds import CrowdConfig
 from . import socialforces
+from . import pam
 
 class Simulator(CrowdConfig):
 
@@ -24,6 +25,7 @@ class Simulator(CrowdConfig):
 
         # Will use a physics scene
         self.rigidbody = False
+        self.use_pam = False
 
         # Tracks if user wants to update agent position on each sim step
         self.update_agents_sim = False 
@@ -110,6 +112,28 @@ class Simulator(CrowdConfig):
         else:
             self.goals = new_goal
 
+    def compute_step(self, agent):
+
+        if self.use_pam:
+            model = pam
+        else:
+            model = socialforces
+        # Get the neighbors of this agent to use in computing forces
+        pn = model.get_neighbors(self.agents_pos[agent], 
+                                        self.agents_pos, 
+                                        self.agents_percept[agent])[1] 
+
+        _force = model.compute_force(self.agents_pos[agent], 
+                                            self.agents_radi[agent], 
+                                            self.agents_vel[agent], 
+                                            self.agents_mass[agent], 
+                                            self.goals[agent], 
+                                            self.agents_pos[pn], 
+                                            self.agents_vel[pn], 
+                                            self.agents_radi[pn],
+                                            self._dt)
+        return _force
+
     def run(self):
         '''Runs the simulation for one step
 
@@ -122,21 +146,22 @@ class Simulator(CrowdConfig):
         force_list = []
 
         for agent in range(self.nagents):
-                
-            # Get the neighbors of this agent to use in computing forces
-            pn = socialforces.get_neighbors(self.agents_pos[agent], 
-                                            self.agents_pos, 
-                                            self.agents_percept[agent])[1]
 
-            _force = socialforces.compute_force(self.agents_pos[agent], 
-                                                self.agents_radi[agent], 
-                                                self.agents_vel[agent], 
-                                                self.agents_mass[agent], 
-                                                self.goals[agent], 
-                                                self.agents_pos[pn], 
-                                                self.agents_vel[pn], 
-                                                self.agents_radi[pn],
-                                                self._dt)
+            _force = self.compute_step(agent)
+            # # Get the neighbors of this agent to use in computing forces
+            # pn = socialforces.get_neighbors(self.agents_pos[agent], 
+            #                                 self.agents_pos, 
+            #                                 self.agents_percept[agent])[1]
+
+            # _force = socialforces.compute_force(self.agents_pos[agent], 
+            #                                     self.agents_radi[agent], 
+            #                                     self.agents_vel[agent], 
+            #                                     self.agents_mass[agent], 
+            #                                     self.goals[agent], 
+            #                                     self.agents_pos[pn], 
+            #                                     self.agents_vel[pn], 
+            #                                     self.agents_radi[pn],
+            #                                     self._dt)
 
             # remove z (up) forces
             _force[self.world_up] = 0

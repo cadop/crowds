@@ -70,9 +70,14 @@ def make_window_elements(self, _window, Sim):
 
             with ui.HStack(height=20):
                 ui.Label('Use Rigid Body') 
-                RigidBody = ui.CheckBox()
+                RigidBody = ui.CheckBox(width=3)
                 RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'rigid_flag', m.get_value_as_bool()))
                 RigidBody.model.set_value(False)
+
+                ui.Label('Use PAM') 
+                SFModel = ui.CheckBox(width=3)
+                SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'pam_flag', m.get_value_as_bool()))
+                SFModel.model.set_value(False)
 
                 # options = ["GeomPoints", "RigidBody"]
 
