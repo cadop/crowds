@@ -67,10 +67,10 @@ def agent_force(rr_i, ri, vv_i, rr_j, rj, vv_j):
     #  t_ij "Vector of tangential relative velocity pointing from i to j." 
     #  A sliding force is applied on agent i in this direction to reduce the relative velocity.
     t_ij = np.cross(vv_j - vv_i, [0,0,1] )
-    deltaV = np.dot(vv_j - vv_i, t_ij)
+    dv_ji = np.dot(vv_j - vv_i, t_ij)
 
     #  Calculate f_ij
-    force = ( ( proximity(rij, d_ij) + repulsion(rij, d_ij) ) * n_ij ) +  sliding(rij, d_ij, deltaV, t_ij)
+    force =  repulsion(rij, d_ij, n_ij) + proximity(rij, d_ij, n_ij) + sliding(rij, d_ij, dv_ji, t_ij)
 
     return force
 
@@ -80,23 +80,22 @@ def goal_force(goal, i_xyz, v_i, m_i, v_desired, dt):
 
     return force 
 
-
 def G(r_ij, d_ij):
     # g(x) is a function that returns zero if pedestrians touch
     # otherwise is equal to the argument x 
     if (d_ij > r_ij): return 0.0
     return r_ij - d_ij;
 
-def proximity(r_ij, d_ij):
-    force = Parameters.A * np.exp( (r_ij - d_ij) / Parameters.B)
+def repulsion(r_ij, d_ij, n_ij):
+    force = Parameters.A * np.exp( (r_ij - d_ij) / Parameters.B) * n_ij
     return force
 
-def repulsion(r_ij, d_ij):
-    force = Parameters.kn * G(r_ij, d_ij)
+def proximity(r_ij, d_ij, n_ij):
+    force = Parameters.kn * G(r_ij, d_ij) * n_ij
     return force 
 
-def sliding(r_ij, d_ij, deltaVelocity, t_ij):
-    force = Parameters.kt * G(r_ij, d_ij) * (deltaVelocity * t_ij)
+def sliding(r_ij, d_ij, dv_ji, t_ij):
+    force = Parameters.kt * G(r_ij, d_ij) * (dv_ji * t_ij)
     return force
 
 def mag(v):
