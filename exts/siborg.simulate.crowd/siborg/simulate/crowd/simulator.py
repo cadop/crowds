@@ -114,10 +114,12 @@ class Simulator(CrowdConfig):
 
     def compute_step(self, agent):
 
+        # Set the model to PAM if asked
         if self.use_pam:
             model = pam
         else:
             model = socialforces
+
         # Get the neighbors of this agent to use in computing forces
         pn = model.get_neighbors(self.agents_pos[agent], 
                                         self.agents_pos, 
@@ -148,20 +150,6 @@ class Simulator(CrowdConfig):
         for agent in range(self.nagents):
 
             _force = self.compute_step(agent)
-            # # Get the neighbors of this agent to use in computing forces
-            # pn = socialforces.get_neighbors(self.agents_pos[agent], 
-            #                                 self.agents_pos, 
-            #                                 self.agents_percept[agent])[1]
-
-            # _force = socialforces.compute_force(self.agents_pos[agent], 
-            #                                     self.agents_radi[agent], 
-            #                                     self.agents_vel[agent], 
-            #                                     self.agents_mass[agent], 
-            #                                     self.goals[agent], 
-            #                                     self.agents_pos[pn], 
-            #                                     self.agents_vel[pn], 
-            #                                     self.agents_radi[pn],
-            #                                     self._dt)
 
             # remove z (up) forces
             _force[self.world_up] = 0
