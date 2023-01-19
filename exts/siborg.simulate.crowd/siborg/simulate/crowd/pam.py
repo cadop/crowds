@@ -93,7 +93,6 @@ def norm(v):
         v_norm = v / magnitude
     return v_norm
 
-
 def get_neighbors(cur, agents, pn_r):
     dist = distance.cdist([cur], agents)
     pn = dist < pn_r
@@ -125,20 +124,22 @@ def compute_force(rr_i, ri, vv_i, mass, goal, pn_rr, pn_vv, pn_r, dt):
     obstacle_force = np.array([0, 0, 0], dtype='float64')
     
     # for i in range(len(obstacles)):
-        #Step 1: get closest point on obstacle to agent
-        #[[ Need python code for this in simulation ]]
+    #     # Step 1: get closest point on obstacle to agent
+    #     # [[ Need python code for this in simulation ]]
         
-        # n_w = rr_i - closest_point
-        # d_w = mag(n_w) * mag(n_w)
+    #     n_w = rr_i - closest_point
+    #     d_w = mag(n_w) * mag(n_w)
 
-        # if (d_w < SAFE):
-        #     d_w = np.sqrt(d_w)
-        #     if (d_w > 0):
-        #         n_w /= d_w
-
-        #     distanceMinimumRadius = ((d_w - Parameters.agent_radius) < 0.001f) ? 0.001f : d_w - Parameters.agent_radius
-        #     obstacle_force = (Parameters._ideal_wall_dist - d_w) / np.Pow(distanceMinimumRadius, Parameters.wall_steepness) * n_w
-        #     add_force(obstacle_force)
+    #     if (d_w < SAFE):
+    #         d_w = np.sqrt(d_w)
+    #         if (d_w > 0):
+    #             n_w /= d_w
+    #         if ((d_w - Parameters.agent_radius) < 0.001):
+    #             dist_min_radius =  0.001
+    #         else: 
+    #             d_w - Parameters.agent_radius
+    #         obstacle_force = (Parameters._ideal_wall_dist - d_w) / np.pow(dist_min_radius, Parameters.wall_steepness) * n_w
+    #         add_force(obstacle_force)
     
     
     # Keep track of if we ever enter a collision state
