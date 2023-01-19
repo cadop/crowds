@@ -41,18 +41,14 @@ def calc_agent_force(rr_i, ri, vv_i, pn_rr, pn_vv, pn_r):
         rj = pn_r[j]
 
         #  Pass agent position to AgentForce calculation
-        ff_ij = agent_force(rr_i, ri, vv_i, rr_j, rj, vv_j)
+        ff_ij = neighbor_force(rr_i, ri, vv_i, rr_j, rj, vv_j)
 
         #  Sum Forces
         force += ff_ij
     
     return force
-
-
-def calc_goal_force(goal, pos, vel, mass, v_desired, dt):
-    return goal_force(goal, pos, vel, mass, v_desired, dt)
-
-def agent_force(rr_i, ri, vv_i, rr_j, rj, vv_j):
+    
+def neighbor_force(rr_i, ri, vv_i, rr_j, rj, vv_j):
     #  Calculate the force exerted by another agent
     #  Take in this agent (i) and a neighbors (j) position and radius
 
@@ -74,11 +70,11 @@ def agent_force(rr_i, ri, vv_i, rr_j, rj, vv_j):
 
     return force
 
-def goal_force(goal, i_xyz, v_i, m_i, v_desired, dt):
-    ee_i = norm(goal - i_xyz)
-    force = m_i * ( ( (v_desired * ee_i) - v_i ) / Parameters.Tau )
-
+def calc_goal_force(goal, pos, vel, mass, v_desired, dt):
+    ee_i = norm(goal - pos)
+    force = mass * ( ( (v_desired * ee_i) - vel ) / Parameters.Tau )
     return force 
+
 
 def G(r_ij, d_ij):
     # g(x) is a function that returns zero if pedestrians touch
