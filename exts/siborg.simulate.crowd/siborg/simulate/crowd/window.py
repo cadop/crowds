@@ -1,4 +1,4 @@
-from .socialforces import Parameters
+from .models.socialforces import Parameters
 import omni.ui as ui
 
 combo_sub = None
@@ -85,6 +85,11 @@ def make_window_elements(self, _window, Sim):
                 SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'pam_flag', m.get_value_as_bool()))
                 SFModel.model.set_value(False)
 
+                ui.Label('Use GPU', width=20) 
+                WarpModel = ui.CheckBox(width=30)
+                WarpModel.model.add_value_changed_fn(lambda m : setattr(self, 'gpu_flag', m.get_value_as_bool()))
+                WarpModel.model.set_value(False)
+
                 # options = ["GeomPoints", "RigidBody"]
 
                 # combo_model: ui.AbstractItemModel = ui.ComboBox(0, *options).model
@@ -103,8 +108,10 @@ def make_window_elements(self, _window, Sim):
                 #     option = options[current_index]
                 #     print(f"Button Clicked! Selected '{option}' at index {current_index}.")
                 #     self.api_example(current_index)
+                # ui.Button("Set Selected Meshes", width=5, clicked_fn=self.assign_meshes)
 
                 ui.Button("Start Demo", width=5, clicked_fn=self.api_example)
+
 
             with ui.HStack(height=10):
                 pass 

@@ -8,7 +8,8 @@ from omni.physx import get_physx_interface
 from . import window
 from . import simulator
 from .env import Environment
- 
+from . import usd_utils
+
 class SFsim(omni.ext.IExt):
     # ext_id is current extension id. It can be used with extension manager to query
     #  additional information, like where this extension is located on filesystem.
@@ -17,17 +18,21 @@ class SFsim(omni.ext.IExt):
         print("[siborg.simulate.crowd] Social Forces Sim startup")
 
         self.goal_prim_path = '/World/CrowdGoals'
+        self.obstacle_prim_path = '/World/Obstacles'
         self.grid_size = 3
+
+        self.rigid_flag = False
+        self.pam_flag = False
+        self.gpu_flag = False
 
         self.init_scene()
         self.show() 
-        self.rigid_flag = False
-        self.pam_flag = False
 
         self.goal_prim_dict = {} # {Prim path, subscriber}
+        self._on_update_sub = None
 
     def show(self):
-        self._window = ui.Window("Social Forces Demo Settings", width=300, height=220)
+        self._window = ui.Window("Social Forces Demo Settings", width=300, height=250)
         gui_window = window.make_window_elements(self, self._window, self.Sim)
 
     def init_goal_prim(self, prim_path):
@@ -39,6 +44,7 @@ class SFsim(omni.ext.IExt):
 
     def modify_goals(self, _new_goals):
         if len(_new_goals) == 0: return 
+        if self.Sim.nagents == 0: return 
         # Assign goals based on number of goals available
         if len(_new_goals)>self.Sim.nagents: 
             _new_goals = _new_goals[self.Sim.nagents:]
@@ -50,7 +56,6 @@ class SFsim(omni.ext.IExt):
             goal_cast[idx][:] = _new_goals[idx]
 
         # Reshape into xyz vector
-        # goal_cast = np.asarray(goal_cast)
         goal_cast = np.vstack(goal_cast)
         goal_cast = np.asarray(goal_cast, dtype=np.float)
         # Update the simulations goals
@@ -58,11 +63,12 @@ class SFsim(omni.ext.IExt):
 
     def init_scene(self):
         self.World = Environment() 
-        self.Sim = simulator.Simulator()
+        if self.gpu_flag: self.Sim = simulator.WarpCrowd()
+        else: self.Sim = simulator.Simulator()
         # Create the goal hierarchy
         self.init_goal_prim(self.goal_prim_path)
+        self.init_goal_prim(self.obstacle_prim_path)
 
-        self._on_update_sub = get_physx_interface().subscribe_physics_step_events(self._on_update_event)
 
     def _on_update_event(self, dt):
         # Check the Goals xform path and see if there are any changes needed to the goal watchers
@@ -91,16 +97,28 @@ class SFsim(omni.ext.IExt):
             t = omni.usd.utils.get_world_transform_matrix(_prim).ExtractTranslation()
             new_goals.append(t)
 
-        # new_goals = np.asarray(new_goals)
         if len(new_goals) == 0: 
             return 
 
         self.modify_goals(new_goals)
 
+    def assign_meshes(self):
+        self.stage = omni.usd.get_context().get_stage()
+        # Use the meshes that are 
+        parent_prim =  self.stage.GetPrimAtPath(self.obstacle_prim_path)
+        points, faces = usd_utils.children_as_mesh(self.stage, parent_prim)
+        self.Sim.config_mesh(points, faces)
+
     def api_example(self):
         self.Sim._unregister()
 
-        self.Sim = simulator.Simulator(self.World)
+        if self.gpu_flag: 
+            self.Sim = simulator.WarpCrowd(self.World)
+            self.Sim.config_hasgrid()
+            self.assign_meshes()
+        else:
+            self.Sim = simulator.Simulator(self.World)
+        
         self.demo_api_call(self.Sim)
     
     def demo_api_call(self, Sim):
@@ -113,6 +131,9 @@ class SFsim(omni.ext.IExt):
             Sim.set_geompoints() # update the usdgeom points for visualization
         if self.pam_flag:
             Sim.use_pam = True
+        if self.gpu_flag:
+            Sim.params_to_warp()
+
         # tell simulator to update positions after each run
         Sim.update_agents_sim = True 
         # tell simulator to handle the update visualization
@@ -120,6 +141,10 @@ class SFsim(omni.ext.IExt):
 
         # Register the simulation to updates, and the Sim will handle it from here
         Sim.register_simulation()
+
+        if not self._on_update_sub:
+            self._on_update_sub = get_physx_interface().subscribe_physics_step_events(self._on_update_event)
+
 
     def on_shutdown(self):
         print("[siborg.simulate.crowd] Crowd Sim shutdown")
