@@ -1,6 +1,6 @@
 [package]
 # Semantic Versioning is used: https://semver.org/
-version = "0.0.2-alpha"
+version = "0.0.3-alpha"
 
 # The title and description fields are primarily for displaying extension info in UI
 title = "Crowd Simulation"
