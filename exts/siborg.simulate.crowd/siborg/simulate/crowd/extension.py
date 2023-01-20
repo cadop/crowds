@@ -24,7 +24,6 @@ class SFsim(omni.ext.IExt):
         self.rigid_flag = False
         self.pam_flag = False
 
-
         self.goal_prim_dict = {} # {Prim path, subscriber}
 
     def show(self):
@@ -44,15 +43,16 @@ class SFsim(omni.ext.IExt):
         if len(_new_goals)>self.Sim.nagents: 
             _new_goals = _new_goals[self.Sim.nagents:]
         # Get strides
+        self.Sim.goals = np.asarray(self.Sim.goals, dtype=object)
         goal_cast = np.array_split(self.Sim.goals, len(_new_goals))
         # Reassign the split arrays their new goals
         for idx in range(len(goal_cast)):
             goal_cast[idx][:] = _new_goals[idx]
 
         # Reshape into xyz vector
-        goal_cast = np.asarray(goal_cast)
+        # goal_cast = np.asarray(goal_cast)
         goal_cast = np.vstack(goal_cast)
-
+        goal_cast = np.asarray(goal_cast, dtype=np.float)
         # Update the simulations goals
         self.Sim.update_goals(goal_cast)
 
@@ -91,8 +91,10 @@ class SFsim(omni.ext.IExt):
             t = omni.usd.utils.get_world_transform_matrix(_prim).ExtractTranslation()
             new_goals.append(t)
 
-        new_goals = np.asarray(new_goals)
-        if len(new_goals) == 0: new_goals = np.asarray([0,0,0], dtype=float)
+        # new_goals = np.asarray(new_goals)
+        if len(new_goals) == 0: 
+            return 
+
         self.modify_goals(new_goals)
 
     def api_example(self):
