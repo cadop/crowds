@@ -132,7 +132,7 @@ class SFsim(omni.ext.IExt):
         if self.pam_flag:
             Sim.use_pam = True
         if self.gpu_flag:
-            Sim.params_to_warp()
+            Sim.configure_params()
 
         # tell simulator to update positions after each run
         Sim.update_agents_sim = True 

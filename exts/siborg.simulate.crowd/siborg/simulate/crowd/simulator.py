@@ -4,16 +4,15 @@ from omni.physx import get_physx_interface
 import omni
 import carb
 from pxr import UsdGeom
+import warp as wp
 
 from siborg.simulate.crowd.crowds import CrowdConfig
 from siborg.simulate.crowd.models import socialforces
 from siborg.simulate.crowd.models import pam
 
-
-import warp as wp
 wp.init()
-
 from siborg.simulate.crowd.models import socialforces_warp as crowd_force
+
 class Simulator(CrowdConfig):
 
     def __init__(self, world=None):
@@ -146,36 +145,46 @@ class Simulator(CrowdConfig):
         -------
         ndarray[x,y,z] forces
         '''
-        force_list = []
+        self.force_list = []
 
         for agent in range(self.nagents):
 
             _force = self.compute_step(agent)
 
-            # remove z (up) forces
+            # remove world (up) forces
             _force[self.world_up] = 0
 
             # Store all forces to be applied to agents
-            force_list.append(_force)
+            self.force_list.append(_force)
+
+        self.step_processing()
+
+    def step_processing(self):
+        '''Process the computed step for simulation
+
+        Returns
+        -------
+        _type_
+            _description_
+        '''
 
         # only update agent positions if user requests, otherwise they might want to
         #  update using forces themselves
         if self.update_agents_sim:
             # If using rigid body, apply forces to agents
             if self.rigidbody: 
-                self.apply_force(force_list)
-                return force_list
-
-            # Integrate for new position
-            for i in range(self.nagents):
-                self.agents_pos[i], self.agents_vel[i] = self.integrate(self.agents_pos[i], 
-                                                                        self.agents_vel[i], 
-                                                                        force_list[i], 
-                                                                        self._dt)
-            if self.update_viz: 
+                self.apply_force(self.force_list)
+            else: 
+                self.internal_integration()
                 self.set_geompoints()
 
-        return force_list
+    def internal_integration(self):
+        # Integrate for new position
+        for i in range(self.nagents):
+            self.agents_pos[i], self.agents_vel[i] = self.integrate(self.agents_pos[i], 
+                                                                    self.agents_vel[i], 
+                                                                    self.force_list[i], 
+                                                                    self._dt)
 
     def apply_force(self, force_list):
         '''Used for when rigidbody agents are used
@@ -253,9 +262,8 @@ class WarpCrowd(Simulator):
 
         self.goal = [0.0,0.0,0.0]
 
-        # self.demo_agents()
-        self.configure_params()
-        self.params_to_warp()
+        self.inv_up = wp.vec3(1.0,0.0,1.0) # z-up
+        self.inv_up[self.world_up] = 0.0  
 
     def demo_agents(self, s=1.1, m=50, n=50):
         # Initialize agents in a grid for testing
@@ -265,8 +273,11 @@ class WarpCrowd(Simulator):
                                       for y in range(n)
                                     ])
         self.nagents = len(self.agents_pos)
+        self.configure_params()
 
     def configure_params(self):
+        '''Convert all parameters to warp
+        '''
         self.agents_pos = np.asarray([np.array([0,0,0]) for x in range(self.nagents)])
         self.agents_vel = np.asarray([np.array([0,0,0]) for x in range(self.nagents)])
         self.agents_radi = np.random.uniform(self.radius_min, self.radius_max, self.nagents)
@@ -274,9 +285,6 @@ class WarpCrowd(Simulator):
         self.agents_percept = np.asarray([self.perception_radius for x in range(self.nagents)])
         self.agents_goal = np.asarray([np.array(self.goal, dtype=float) for x in range(self.nagents)])
 
-    def params_to_warp(self):
-        '''Convert all parameters to warp
-        '''
         self.agent_force_wp = wp.zeros(shape=self.nagents,device=self.device, dtype=wp.vec3)
         self.agents_pos_wp = wp.array(self.agents_pos, device=self.device, dtype=wp.vec3)
         self.agents_vel_wp = wp.array(self.agents_vel, device=self.device, dtype=wp.vec3)
@@ -311,6 +319,14 @@ class WarpCrowd(Simulator):
         faces : List[int]
             A list of integers corresponding to vertices. Must be triangle-based
         '''
+        # fake some points and faces if empty list was passed 
+        if len(points) == 0:
+            points = [(0,0,0), (0,0,0), (0,0,0)]
+            faces = [[1, 2, 3]]
+
+        print(points)
+        print(faces)
+
         # Init mesh for environment collision
         self.mesh = wp.Mesh( points=wp.array(points, dtype=wp.vec3, device=self.device),
                             indices=wp.array(faces, dtype=int ,device=self.device)
@@ -323,7 +339,6 @@ class WarpCrowd(Simulator):
             self.goals = new_goal
         self.agents_goal_wp = wp.array(self.goals, device=self.device, dtype=wp.vec3)
 
-    # def compute_step(self):
     def run(self):
         # Rebuild hashgrid given new positions
         self.grid.build(points=self.agents_pos_wp, radius=self.hash_radius)
@@ -332,11 +347,17 @@ class WarpCrowd(Simulator):
         wp.launch(kernel=crowd_force.get_forces,
                 dim=self.nagents,
                 inputs=[self.agents_pos_wp, self.agents_vel_wp, self.agents_goal_wp, self.agents_radi_wp, 
-                        self.agents_mass_wp, self.dt, self.agents_percept_wp, self.grid.id, self.mesh.id],
+                        self.agents_mass_wp, self.dt, self.agents_percept_wp, self.grid.id, self.mesh.id,
+                        self.inv_up],
                 outputs=[self.agent_force_wp],
                 device=self.device
                 )
+    
+        self.step_processing()
 
+        return self.agent_force_wp
+
+    def internal_integration(self):
         # Given the forces, integrate for pos and vel
         wp.launch(kernel=crowd_force.integrate,
                 dim=self.nagents,
@@ -344,12 +365,9 @@ class WarpCrowd(Simulator):
                 outputs=[self.xnew_wp, self.vnew_wp],
                 device=self.device
                 )
-    
+
         self.agents_pos_wp = self.xnew_wp
         self.agents_vel_wp = self.vnew_wp
 
         self.agents_pos = self.agents_pos_wp.numpy()
-
-        self.set_geompoints()
-
-        return self.agent_force_wp
+        self.force_list = self.agent_force_wp.numpy()

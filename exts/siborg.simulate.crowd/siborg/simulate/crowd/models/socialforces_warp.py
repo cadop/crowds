@@ -20,6 +20,7 @@ def get_forces(positions: wp.array(dtype=wp.vec3),
                 percept : wp.array(dtype=float),
                 grid : wp.uint64,
                 mesh: wp.uint64,
+                inv_up: wp.vec3,
                 forces: wp.array(dtype=wp.vec3),
                 ):
 
@@ -45,6 +46,9 @@ def get_forces(positions: wp.array(dtype=wp.vec3),
                                 pn,
                                 grid,
                                 mesh)
+
+    # Clear any vertical forces with Element-wise mul
+    _force = wp.cw_mul(_force, inv_up)
 
     # compute distance of each point from origin
     forces[tid] = _force
@@ -262,9 +266,6 @@ def compute_force(rr_i: wp.vec3,
     wall = calc_wall_force(rr_i, ri, vv_i, mesh)
     # Sum of forces
     force = goal + agent + wall
-
-    # Clear any vertical forces
-    force = wp.cw_mul(force, wp.vec3(1.0,1.0,0.0)) # Element-wise mul
 
     force = wp.normalize(force) * wp.min(wp.length(force), max_speed)
 
