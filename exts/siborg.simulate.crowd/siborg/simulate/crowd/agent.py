@@ -45,6 +45,14 @@ class Agent:
         self.massAPI.CreateMassAttr(2)
         self.massAPI.CreateCenterOfMassAttr().Set(Gf.Vec3f(0.0, 0.0, 0.0))
 
+        # Add a force attribute
+        # shuttleForcePath = skinMeshPath + "/shuttleForce"
+        # xform = UsdGeom.Xform.Define(stage, shuttleForcePath)
+        # self.forceApi = PhysxSchema.PhysxForceAPI.Apply(xform.GetPrim())   
+        #      
+        self.forceApi = PhysxSchema.PhysxForceAPI.Apply(prim)        
+        self.forceAttr = self.forceApi.GetForceAttr()
+
         return skin_mesh, skinMeshPath
 
     def translate(self, x=0, y=0, z=0):
