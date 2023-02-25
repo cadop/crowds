@@ -1,10 +1,13 @@
 import numpy as np
+from numpy import random
 
 from omni.physx import get_physx_interface
 import omni
 import carb
-from pxr import UsdGeom, Gf
+from pxr import UsdGeom, Gf, Sdf, UsdShade
 import warp as wp
+
+import usdrt
 
 from siborg.simulate.crowd.crowds import CrowdConfig
 from siborg.simulate.crowd.models import socialforces
@@ -31,10 +34,19 @@ class Simulator(CrowdConfig):
         self.rigidbody = False
         self.use_pam = False
         self.on_gpu = False
+        self.use_instancer = False
+        self.add_jane = False
+        self.use_heading = False
 
         # Tracks if user wants to update agent position on each sim step
         self.update_agents_sim = False 
         self.update_viz = False
+
+        self.instance_path = "/World/PointInstancer"
+        self.agent_instance_path = '/World/Scope/CrowdBob'
+        self.agent_instance_path_jane = '/World/Scope/CrowdJane'
+        self.instance_forward_vec = (1.0,0.0,0.0)
+        self.vel_epsilon = 0.05
 
         self._get_world_up()
 
@@ -177,7 +189,10 @@ class Simulator(CrowdConfig):
                 self.apply_force(self.force_list)
             else: 
                 self.internal_integration()
-                self.set_geompoints()
+                if self.use_instancer:
+                    self.set_instance_agents()
+                else:
+                    self.set_geompoints()
 
     def internal_integration(self):
         # Integrate for new position
@@ -196,8 +211,11 @@ class Simulator(CrowdConfig):
             list of forces in order of the agents
         '''
         # Apply forces to simulation
-        for idx, force in enumerate(force_list):
-            self._add_force(force, self.agent_bodies[idx], self.agent_bodies[idx].position)
+        # with Sdf.ChangeBlock():
+
+        # for idx, force in enumerate(force_list):
+        #     self._add_force(force, self.agent_bodies[idx], self.agent_bodies[idx].position)
+        self._add_force3(force_list, self.agent_bodies)
 
         # Update positions and velocities 
         for i in range(self.nagents):
@@ -211,11 +229,35 @@ class Simulator(CrowdConfig):
 
     def _add_force2(self, force, rigid_body, position):
         # force = Gf.Vec3d(force)
+        
         _ = force[0]
         force = Gf.Vec3d(float(force[0]), float(force[1]),float(force[2]))
-
         rigid_body.forceAttr.Set(force) #position
 
+    def _add_force3(self, force_list, rigid_body):
+        # force = Gf.Vec3d(force)
+                
+        # stage = usdrt.Usd.Stage.Attach(omni.usd.get_context().get_stage_id())
+
+        # # prim = stage.GetPrimAtPath("/World/boxActor")
+        # attr = prim.CreateAttribute("_worldForce",  usdrt.Sdf.ValueTypeNames.Float3, True)
+
+        # if attr:
+        #     attr.Set(usdrt.Gf.Vec3f(50000.0, 0.0, 0.0))
+
+        # prefixes = set(prefix for path in paths for prefix in path.GetPrefixes())
+        # with Sdf.ChangeBlock():
+            # for path in prefixes:
+            #     prim_spec = Sdf.CreatePrimInLayer(layer, path)
+            #     prim_spec.specifier = Sdf.SpecifierDef
+            #     prim_spec.typeName = UsdGeom.Xform.__name__
+        for idx, body in enumerate(rigid_body):
+            force = force_list[idx]
+            force = usdrt.Gf.Vec3d(float(force[0]), float(force[1]),float(force[2]))
+            # body.forceAttr.Set(force) #position
+            if body.world_force_attr:
+                body.world_force_attr.Set(force)
+                    
     def create_geompoints(self, stage_path=None, color=None):
         '''create and manage geompoints representing agents
 
@@ -247,13 +289,91 @@ class Simulator(CrowdConfig):
     def set_geompoints(self):
         self.agent_point_prim.GetPointsAttr().Set(self.agents_pos)
 
+    def create_instance_agents(self):
+
+        self._single_agent_instance(self.agent_instance_path)
+
+        # TODO find way to split colors of instances 
+        # self._single_agent_instance(self.agent_instance_path_jane)
+    
+
+    def _single_agent_instance(self, agent_instance_path):
+        stage = omni.usd.get_context().get_stage()
+
+        self.point_instancer = UsdGeom.PointInstancer.Get(stage, self.instance_path)
+        
+        if not self.point_instancer:
+            self.point_instancer = UsdGeom.PointInstancer(stage.DefinePrim(self.instance_path, "PointInstancer"))
+
+        self.point_instancer.CreatePrototypesRel().SetTargets([agent_instance_path])
+        self.proto_indices_attr = self.point_instancer.CreateProtoIndicesAttr()
+        self.proto_indices_attr.Set([0] * self.nagents)
+
+        self.agent_instancer_scales = [(1.0,1.0,1.0) for x in range(self.nagents)] # change to numpy 
+        # Set scale
+        self.point_instancer.GetScalesAttr().Set(self.agent_instancer_scales)
+        self.point_instancer.GetPositionsAttr().Set(self.agents_pos)   
+        # Set orientation
+        rot = Gf.Rotation()
+        rot.SetRotateInto(self.instance_forward_vec, self.instance_forward_vec)
+        self.agent_headings =  [Gf.Quath(rot.GetQuat()) for x in range(self.nagents)] 
+        self.point_instancer.GetOrientationsAttr().Set(self.agent_headings)
+  
+    def set_instance_agents(self):
+        # update the points
+        # self.point_instancer.CreatePrototypesRel().SetTargets([self.agent_instance_path])
+        # self.proto_indices_attr = self.point_instancer.CreateProtoIndicesAttr()
+        # self.proto_indices_attr.Set([0] * self.nagents)
+
+        # Set position
+        self.point_instancer.GetPositionsAttr().Set(self.agents_pos)   
+
+        if not self.use_heading: return 
+
+        # Create array of agent headings based on velocity
+        normalize_vel = self.agents_vel
+        rot = Gf.Rotation()
+        self.agent_headings = []
+        
+        cur_orient = self.point_instancer.GetOrientationsAttr().Get()
+
+        for i in range(0, self.nagents):
+            if np.sqrt(normalize_vel[i].dot(normalize_vel[i])) < self.vel_epsilon:
+                tovec = cur_orient[i]
+                self.agent_headings.append(cur_orient[i])
+            else:
+                tovec = Gf.Vec3d(tuple(normalize_vel[i]))
+                rot.SetRotateInto(self.instance_forward_vec, tovec)
+                self.agent_headings.append(Gf.Quath(rot.GetQuat()))
+
+        # Set orientation
+        self.point_instancer.GetOrientationsAttr().Set(self.agent_headings)
+
+        return 
+    
+        #### Change colors
+
+        stage = omni.usd.get_context().get_stage()
+        # get path of material
+        mat_path = '/CrowdBob/Looks/Linen_Blue'
+        linen_mat = Sdf.Path(f'/World/Scope{mat_path}')
+        mat_prim = stage.GetPrimAtPath(linen_mat)
+        # print(mat_prim)
+        # shader_path = '/Shader.inputs:diffuse_tint'
+        # tint_shader = f'/World{mat_path}{shader_path}'
+        
+        shader = omni.usd.get_shader_from_material(mat_prim)
+        # print(shader)
+        #inp = shader.GetInput('diffuse_tint').Get()
+        inp = shader.GetInput('diffuse_tint').Set((0.5,0.5,1.0))
+
 
 class WarpCrowd(Simulator):
     '''A class to manage the warp-based version of crowd simulation
     '''
     def __init__(self, world=None):
         super().__init__(world)
-        self.device = 'cuda'
+        self.device = 'cuda:0'
 
         # generate n number of agents
         self.nagents = 9
@@ -288,7 +408,8 @@ class WarpCrowd(Simulator):
     def configure_params(self):
         '''Convert all parameters to warp
         '''
-        self.agents_pos = np.asarray([np.array([0,0,0], dtype=float) for x in range(self.nagents)])
+        self.agents_pos = np.asarray(self.agents_pos)
+        # self.agents_pos = np.asarray([np.array([0,0,0], dtype=float) for x in range(self.nagents)])
         self.agents_vel = np.asarray([np.array([0,0,0], dtype=float) for x in range(self.nagents)])
         self.force_list = np.asarray([np.array([0,0,0], dtype=float) for x in range(self.nagents)])
         self.agents_radi = np.random.uniform(self.radius_min, self.radius_max, self.nagents)
@@ -366,7 +487,7 @@ class WarpCrowd(Simulator):
         self.force_list = self.agent_force_wp.numpy()
 
         self.step_processing()
-        
+
         self.agents_pos_wp = wp.array(self.agents_pos, device=self.device, dtype=wp.vec3)
         self.agents_vel_wp = wp.array(self.agents_vel, device=self.device, dtype=wp.vec3)
 

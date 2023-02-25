@@ -2,6 +2,7 @@
 import omni
 from omni.physx.scripts import physicsUtils
 from pxr import Gf, UsdPhysics, PhysxSchema, UsdGeom, UsdShade
+import usdrt
 
 class Agent:
 
@@ -50,9 +51,12 @@ class Agent:
         # xform = UsdGeom.Xform.Define(stage, shuttleForcePath)
         # self.forceApi = PhysxSchema.PhysxForceAPI.Apply(xform.GetPrim())   
         #      
-        self.forceApi = PhysxSchema.PhysxForceAPI.Apply(prim)        
-        self.forceAttr = self.forceApi.GetForceAttr()
-
+        # self.forceApi = PhysxSchema.PhysxForceAPI.Apply(prim)        
+        # self.forceAttr = self.forceApi.GetForceAttr()
+        self.usdrt_stage = usdrt.Usd.Stage.Attach(omni.usd.get_context().get_stage_id())
+        prim = self.usdrt_stage.GetPrimAtPath(skinMeshPath)
+        self.world_force_attr = prim.CreateAttribute("_worldForce",  usdrt.Sdf.ValueTypeNames.Float3, True)
+        
         return skin_mesh, skinMeshPath
 
     def translate(self, x=0, y=0, z=0):

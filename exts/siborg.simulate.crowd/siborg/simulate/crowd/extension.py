@@ -24,6 +24,9 @@ class SFsim(omni.ext.IExt):
         self.rigid_flag = False
         self.pam_flag = False
         self.gpu_flag = False
+        self.instancer_flag = False
+        self.jane_flag = False
+        self.heading_flag = False
 
         self.init_scene()
         self.show() 
@@ -32,7 +35,7 @@ class SFsim(omni.ext.IExt):
         self._on_update_sub = None
 
     def show(self):
-        self._window = ui.Window("Social Forces Demo Settings", width=300, height=250)
+        self._window = ui.Window("Social Forces Demo Settings", width=500, height=250)
         gui_window = window.make_window_elements(self, self._window, self.Sim)
 
     def init_goal_prim(self, prim_path):
@@ -125,14 +128,29 @@ class SFsim(omni.ext.IExt):
         # Use the builtin function for demo agents
         Sim.rigidbody = self.rigid_flag 
         Sim.init_demo_agents(m=self.grid_size,n=self.grid_size,s=1.1)
-
-        if not Sim.rigidbody:
-            Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
-            Sim.set_geompoints() # update the usdgeom points for visualization
+        
         if self.pam_flag:
             Sim.use_pam = True
         if self.gpu_flag:
             Sim.configure_params()
+
+        if not Sim.rigidbody:
+            if self.jane_flag: # TODO make this work for all sim types
+                Sim.add_jane = True
+            else:
+                Sim.add_jane = False
+            if self.instancer_flag:
+                Sim.use_instancer = True
+                if self.heading_flag: 
+                    Sim.use_heading = True
+                Sim.create_instance_agents() # Create a usdgeom point instance for easy visualization
+                Sim.set_instance_agents() # update the usdgeom points for visualization
+            else:
+                Sim.use_instancer = False
+                Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
+                Sim.set_geompoints() # update the usdgeom points for visualization
+
+
 
         # tell simulator to update positions after each run
         Sim.update_agents_sim = True 

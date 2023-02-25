@@ -75,17 +75,33 @@ def make_window_elements(self, _window, Sim):
             #     nagents.model.add_value_changed_fn(lambda m : setattr(Sim, 'nagents', m.get_value_as_int()))
 
             with ui.HStack(height=20):
-                ui.Label('Use Rigid Body', width=5) 
+
+                ui.Label('Add Jane', width=5) 
+                RigidBody = ui.CheckBox(width=30)
+                RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'jane_flag', m.get_value_as_bool()))
+                RigidBody.model.set_value(False)
+
+                ui.Label('Rigid Body', width=5) 
                 RigidBody = ui.CheckBox(width=30)
                 RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'rigid_flag', m.get_value_as_bool()))
                 RigidBody.model.set_value(False)
 
-                ui.Label('Use PAM', width=20) 
+                ui.Label('PAM', width=20) 
                 SFModel = ui.CheckBox(width=30)
                 SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'pam_flag', m.get_value_as_bool()))
                 SFModel.model.set_value(False)
 
-                ui.Label('Use GPU', width=20) 
+                ui.Label('Use Instances', width=20) 
+                SFModel = ui.CheckBox(width=30)
+                SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'instancer_flag', m.get_value_as_bool()))
+                SFModel.model.set_value(False)
+
+                ui.Label('Use Direction', width=5) 
+                RigidBody = ui.CheckBox(width=30)
+                RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'heading_flag', m.get_value_as_bool()))
+                RigidBody.model.set_value(False)
+
+                ui.Label('GPU', width=20) 
                 WarpModel = ui.CheckBox(width=30)
                 WarpModel.model.add_value_changed_fn(lambda m : setattr(self, 'gpu_flag', m.get_value_as_bool()))
                 WarpModel.model.set_value(False)
