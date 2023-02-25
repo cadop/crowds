@@ -42,8 +42,9 @@ class Simulator(CrowdConfig):
         self.update_agents_sim = False 
         self.update_viz = False
 
-        self.instance_path = "/World/PointInstancer"
-        self.agent_instance_path = '/World/Scope/CrowdBob'
+        self.instancer_paths = ["/World/PointInstancer_Bob", "/World/PointInstancer_Jane"]
+        self.point_instancer_sets = []
+        self.agent_instance_path_bob = '/World/Scope/CrowdBob'
         self.agent_instance_path_jane = '/World/Scope/CrowdJane'
         self.instance_forward_vec = (1.0,0.0,0.0)
         self.vel_epsilon = 0.05
@@ -290,64 +291,101 @@ class Simulator(CrowdConfig):
         self.agent_point_prim.GetPointsAttr().Set(self.agents_pos)
 
     def create_instance_agents(self):
+        
+        if self.add_jane:
 
-        self._single_agent_instance(self.agent_instance_path)
+            bob_size = int(self.nagents/2)
+            bob_pos = self.agents_pos[:bob_size]
 
-        # TODO find way to split colors of instances 
-        # self._single_agent_instance(self.agent_instance_path_jane)
-    
+            point_instancer = self._single_agent_instance(bob_pos, bob_size, self.agent_instance_path_bob, self.instancer_paths[0])
+            self.point_instancer_sets.append(point_instancer)
 
-    def _single_agent_instance(self, agent_instance_path):
+            # TODO find way to split colors of instances 
+            jane_size = int(self.nagents/2)
+            jane_pos = self.agents_pos[bob_size:]
+
+            point_instancer = self._single_agent_instance(jane_pos, jane_size , self.agent_instance_path_jane, self.instancer_paths[1])
+            self.point_instancer_sets.append(point_instancer)
+
+        else:
+            point_instancer = self._single_agent_instance(self.agents_pos, self.nagents, self.agent_instance_path_bob, self.instancer_paths[0])
+            self.point_instancer_sets.append(point_instancer)
+
+
+    def _single_agent_instance(self, agent_pos, nagents, agent_instance_path, instance_path):
         stage = omni.usd.get_context().get_stage()
 
-        self.point_instancer = UsdGeom.PointInstancer.Get(stage, self.instance_path)
+        point_instancer = UsdGeom.PointInstancer.Get(stage, instance_path)
         
-        if not self.point_instancer:
-            self.point_instancer = UsdGeom.PointInstancer(stage.DefinePrim(self.instance_path, "PointInstancer"))
+        if not point_instancer:
+            point_instancer = UsdGeom.PointInstancer(stage.DefinePrim(instance_path, "PointInstancer"))
 
-        self.point_instancer.CreatePrototypesRel().SetTargets([agent_instance_path])
-        self.proto_indices_attr = self.point_instancer.CreateProtoIndicesAttr()
-        self.proto_indices_attr.Set([0] * self.nagents)
+        point_instancer.CreatePrototypesRel().SetTargets([agent_instance_path])
+        self.proto_indices_attr = point_instancer.CreateProtoIndicesAttr()
+        self.proto_indices_attr.Set([0] * nagents)
 
-        self.agent_instancer_scales = [(1.0,1.0,1.0) for x in range(self.nagents)] # change to numpy 
+        self.agent_instancer_scales = [(1.0,1.0,1.0) for x in range(nagents)] # change to numpy 
         # Set scale
-        self.point_instancer.GetScalesAttr().Set(self.agent_instancer_scales)
-        self.point_instancer.GetPositionsAttr().Set(self.agents_pos)   
+        point_instancer.GetScalesAttr().Set(self.agent_instancer_scales)
+        point_instancer.GetPositionsAttr().Set(agent_pos)   
         # Set orientation
         rot = Gf.Rotation()
         rot.SetRotateInto(self.instance_forward_vec, self.instance_forward_vec)
-        self.agent_headings =  [Gf.Quath(rot.GetQuat()) for x in range(self.nagents)] 
-        self.point_instancer.GetOrientationsAttr().Set(self.agent_headings)
+        self.agent_headings =  [Gf.Quath(rot.GetQuat()) for x in range(nagents)] 
+        point_instancer.GetOrientationsAttr().Set(self.agent_headings)
+
+        return point_instancer
   
     def set_instance_agents(self):
-        # update the points
+        # update the points 
         # self.point_instancer.CreatePrototypesRel().SetTargets([self.agent_instance_path])
         # self.proto_indices_attr = self.point_instancer.CreateProtoIndicesAttr()
         # self.proto_indices_attr.Set([0] * self.nagents)
 
-        # Set position
-        self.point_instancer.GetPositionsAttr().Set(self.agents_pos)   
-
-        if not self.use_heading: return 
-
-        # Create array of agent headings based on velocity
-        normalize_vel = self.agents_vel
-        rot = Gf.Rotation()
-        self.agent_headings = []
-        
-        cur_orient = self.point_instancer.GetOrientationsAttr().Get()
-
-        for i in range(0, self.nagents):
-            if np.sqrt(normalize_vel[i].dot(normalize_vel[i])) < self.vel_epsilon:
-                tovec = cur_orient[i]
-                self.agent_headings.append(cur_orient[i])
+        for idx, point_instancer in enumerate(self.point_instancer_sets):
+            if len(self.point_instancer_sets) == 1:
+                agents_pos = self.agents_pos
+                agents_vel = self.agents_vel
+                nagents = self.nagents
+                # print(f'bob gets all {point_instancer}')            
             else:
-                tovec = Gf.Vec3d(tuple(normalize_vel[i]))
-                rot.SetRotateInto(self.instance_forward_vec, tovec)
-                self.agent_headings.append(Gf.Quath(rot.GetQuat()))
+                _slice = int(self.nagents/2)
+                nagents = _slice
+                if idx == 0:
+                    # Positions for this instance
+                    agents_pos = self.agents_pos[:_slice]
+                    # Velocities for this instance
+                    agents_vel = self.agents_vel[:_slice]
+                else:     
+                    # Positions for this instance
+                    agents_pos = self.agents_pos[_slice:]
+                    # Velocities for this instance
+                    agents_vel = self.agents_vel[_slice:]
 
-        # Set orientation
-        self.point_instancer.GetOrientationsAttr().Set(self.agent_headings)
+            # print(agents_pos)
+            # Set position
+            point_instancer.GetPositionsAttr().Set(agents_pos)   
+
+            if not self.use_heading: continue 
+
+            # Create array of agent headings based on velocity
+            normalize_vel = agents_vel
+            rot = Gf.Rotation()
+            self.agent_headings = []
+            
+            cur_orient = point_instancer.GetOrientationsAttr().Get()
+
+            for i in range(0, nagents):
+                if np.sqrt(normalize_vel[i].dot(normalize_vel[i])) < self.vel_epsilon:
+                    tovec = cur_orient[i]
+                    self.agent_headings.append(cur_orient[i])
+                else:
+                    tovec = Gf.Vec3d(tuple(normalize_vel[i]))
+                    rot.SetRotateInto(self.instance_forward_vec, tovec)
+                    self.agent_headings.append(Gf.Quath(rot.GetQuat()))
+
+            # Set orientation
+            point_instancer.GetOrientationsAttr().Set(self.agent_headings)
 
         return 
     

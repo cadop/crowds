@@ -128,7 +128,7 @@ class SFsim(omni.ext.IExt):
         # Use the builtin function for demo agents
         Sim.rigidbody = self.rigid_flag 
         Sim.init_demo_agents(m=self.grid_size,n=self.grid_size,s=1.1)
-        
+
         if self.pam_flag:
             Sim.use_pam = True
         if self.gpu_flag:
@@ -140,6 +140,7 @@ class SFsim(omni.ext.IExt):
             else:
                 Sim.add_jane = False
             if self.instancer_flag:
+                Sim.point_instancer_sets = []
                 Sim.use_instancer = True
                 if self.heading_flag: 
                     Sim.use_heading = True
@@ -149,8 +150,6 @@ class SFsim(omni.ext.IExt):
                 Sim.use_instancer = False
                 Sim.create_geompoints() # Create a usdgeom point instance for easy visualization
                 Sim.set_geompoints() # update the usdgeom points for visualization
-
-
 
         # tell simulator to update positions after each run
         Sim.update_agents_sim = True 

@@ -126,7 +126,7 @@ def make_window_elements(self, _window, Sim):
                 #     self.api_example(current_index)
                 # ui.Button("Set Selected Meshes", width=5, clicked_fn=self.assign_meshes)
 
-                ui.Button("Start Demo", width=5, clicked_fn=self.api_example)
+            ui.Button("Start Demo", width=5, clicked_fn=self.api_example)
 
 
             with ui.HStack(height=10):
