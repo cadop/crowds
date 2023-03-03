@@ -74,6 +74,50 @@ def integrate(x : wp.array(dtype=wp.vec3),
     xnew[tid] = x1
     vnew[tid] = v1
 
+
+@wp.kernel
+def heading(v : wp.array(dtype=wp.vec3),
+            up : wp.vec3, 
+            forward : wp.vec3,
+            hdir: wp.array(dtype=wp.vec4), 
+            ):
+    
+    tid = wp.tid()
+    v0 = v[tid]
+    vnorm = wp.normalize(v0)
+
+    hdir[tid] = velocity_to_quaternion(up, forward, vnorm)
+
+
+@wp.func
+def velocity_to_quaternion(up : wp.vec3, 
+                           forward : wp.vec3, 
+                           velocity: wp.vec3):
+    # Construct a quaternion that rotates the agent's forward direction to align with the velocity vector
+    if wp.length(forward) > 0: forward = wp.normalize(forward)
+    if wp.length(velocity) > 0: velocity = wp.normalize(velocity)
+    else: 
+        velocity = forward
+
+    dot = wp.dot(forward, velocity) # Clip the dot product to avoid numerical instability
+    if dot == 1.0:
+        # If the forward and velocity vectors are already aligned, return the identity quaternion
+        return wp.vec4(0.0, 0.0, 0.0, 1.0)
+    else:
+        axis = wp.cross(forward, velocity)
+        axis = up * wp.sign(wp.dot(axis, up))  # Project the axis onto the up plane
+        if wp.length(axis) > 0.0: axis = wp.normalize(axis)  # Normalize the axis of rotation
+        else:axis = up  # Use a default axis of rotation if the iwput is a zero vector
+        angle = wp.acos(dot)  # Calculate the angle of rotation with clipping
+        
+        qw = wp.cos(angle/2.0)  # Calculate the scalar component of the quaternion
+        qx = wp.sin(angle/2.0) * axis[0]  # Calculate the vector component of the quaternion
+        qy = wp.sin(angle/2.0) * axis[1]  # Calculate the vector component of the quaternion
+        qz = wp.sin(angle/2.0) * axis[2]  # Calculate the vector component of the quaternion
+        
+        return wp.vec4(qx, qy, qz, qw)
+
+
 @wp.func
 def calc_goal_force(goal: wp.vec3, 
                     pos: wp.vec3, 

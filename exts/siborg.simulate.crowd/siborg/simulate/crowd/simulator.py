@@ -6,7 +6,7 @@ import omni
 import carb
 from pxr import UsdGeom, Gf, Sdf, UsdShade
 import warp as wp
-
+import copy
 import usdrt
 
 from siborg.simulate.crowd.crowds import CrowdConfig
@@ -46,7 +46,8 @@ class Simulator(CrowdConfig):
         self.point_instancer_sets = []
         self.agent_instance_path_bob = '/World/Scope/CrowdBob'
         self.agent_instance_path_jane = '/World/Scope/CrowdJane'
-        self.instance_forward_vec = (1.0,0.0,0.0)
+        self.instance_forward_vec = (1.0,0.0,0.0) # TODO get from instance object
+        self.instance_up_vec = (0.0,1.0,0.0) # TODO Fix to be flexible later
         self.vel_epsilon = 0.05
 
         self._get_world_up()
@@ -345,28 +346,35 @@ class Simulator(CrowdConfig):
         for idx, point_instancer in enumerate(self.point_instancer_sets):
             if len(self.point_instancer_sets) == 1:
                 agents_pos = self.agents_pos
-                agents_vel = self.agents_vel
-                nagents = self.nagents
-                # print(f'bob gets all {point_instancer}')            
             else:
                 _slice = int(self.nagents/2)
-                nagents = _slice
                 if idx == 0:
                     # Positions for this instance
                     agents_pos = self.agents_pos[:_slice]
-                    # Velocities for this instance
-                    agents_vel = self.agents_vel[:_slice]
                 else:     
                     # Positions for this instance
                     agents_pos = self.agents_pos[_slice:]
-                    # Velocities for this instance
-                    agents_vel = self.agents_vel[_slice:]
 
-            # print(agents_pos)
             # Set position
             point_instancer.GetPositionsAttr().Set(agents_pos)   
 
             if not self.use_heading: continue 
+            self.set_heading()
+
+    def set_heading(self):
+        for idx, point_instancer in enumerate(self.point_instancer_sets):
+            if len(self.point_instancer_sets) == 1:
+                agents_vel = self.agents_vel
+                nagents = self.nagents
+            else:
+                _slice = int(self.nagents/2)
+                nagents = _slice
+                if idx == 0:
+                    # Velocities for this instance
+                    agents_vel = self.agents_vel[:_slice]
+                else:     
+                    # Velocities for this instance
+                    agents_vel = self.agents_vel[_slice:]
 
             # Create array of agent headings based on velocity
             normalize_vel = agents_vel
@@ -449,6 +457,15 @@ class WarpCrowd(Simulator):
         self.agents_pos = np.asarray(self.agents_pos)
         # self.agents_pos = np.asarray([np.array([0,0,0], dtype=float) for x in range(self.nagents)])
         self.agents_vel = np.asarray([np.array([0,0,0], dtype=float) for x in range(self.nagents)])
+
+        # # Set a quath for heading
+        # rot = Gf.Rotation()
+        # rot.SetRotateInto(self.instance_forward_vec, self.instance_forward_vec) # from, to
+        # _hquat = Gf.Quath(rot.GetQuat())
+        # # Get rotation between agent forward direction
+
+        self.agents_hdir = np.asarray([np.array([0,0,0,1], dtype=float) for x in range(self.nagents)])
+
         self.force_list = np.asarray([np.array([0,0,0], dtype=float) for x in range(self.nagents)])
         self.agents_radi = np.random.uniform(self.radius_min, self.radius_max, self.nagents)
         self.agents_mass = [self.mass for x in range(self.nagents)]
@@ -458,6 +475,9 @@ class WarpCrowd(Simulator):
         self.agent_force_wp = wp.zeros(shape=self.nagents,device=self.device, dtype=wp.vec3)
         self.agents_pos_wp = wp.array(self.agents_pos, device=self.device, dtype=wp.vec3)
         self.agents_vel_wp = wp.array(self.agents_vel, device=self.device, dtype=wp.vec3)
+
+        self.agents_hdir_wp = wp.array(self.agents_hdir, device=self.device, dtype=wp.vec4)
+
         self.agents_goal_wp = wp.array(self.agents_goal, device=self.device, dtype=wp.vec3)
         self.agents_radi_wp = wp.array(self.agents_radi, device=self.device, dtype=float)
         self.agents_mass_wp = wp.array(self.agents_mass, device=self.device, dtype=float)
@@ -465,6 +485,8 @@ class WarpCrowd(Simulator):
 
         self.xnew_wp = wp.zeros_like(wp.array(self.agents_pos, device=self.device, dtype=wp.vec3))
         self.vnew_wp = wp.zeros_like(wp.array(self.agents_pos, device=self.device, dtype=wp.vec3))
+
+        self.hdir_wp = wp.zeros_like(wp.array(self.agents_hdir, device=self.device, dtype=wp.vec4))
 
     def config_hasgrid(self, nagents=None):
         '''Create a hash grid based on the number of agents
@@ -545,3 +567,30 @@ class WarpCrowd(Simulator):
 
         self.agents_pos = self.agents_pos_wp.numpy()
         self.agents_vel = self.agents_vel_wp.numpy()
+
+    def set_heading(self):
+
+        up = wp.vec3(0.0,1.0,0.0)
+        forward = wp.vec3(1.0,0.0,0.0)
+
+        wp.launch(kernel=crowd_force.heading,
+                dim=self.nagents,
+                inputs=[self.agents_vel_wp, up, forward],
+                outputs=[self.hdir_wp],
+                device=self.device
+                )
+
+        self.agents_hdir_wp = self.hdir_wp
+        self.agents_hdir = self.agents_hdir_wp.numpy()
+
+        for idx, point_instancer in enumerate(self.point_instancer_sets):
+            if len(self.point_instancer_sets) == 1:
+                agent_headings = self.agents_hdir
+            else:
+                _slice = int(self.nagents/2)
+                if idx == 0:
+                    agent_headings = self.agents_hdir[:_slice]
+                else:     
+                    agent_headings = self.agents_hdir[_slice:]
+            # Set orientation
+            point_instancer.GetOrientationsAttr().Set(agent_headings)
