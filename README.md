@@ -1,5 +1,5 @@
 
-![preview](https://user-images.githubusercontent.com/11399119/190271233-35524930-1cb8-44c7-b09f-88d4407fe74b.png)
+![preview](https://user-images.githubusercontent.com/11399119/226725400-fa9054e3-a13f-4a9f-8294-d08cbee51519.PNG)
 
 A crowd simulator API with a default demo scene. The main python API can be used in a few ways. There is an examples folder showing a few use-cases. Users can also switch between social forces and PAM as the crowds algorithm. 
 
