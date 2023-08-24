@@ -76,9 +76,24 @@ def make_window_elements(self, _window, Sim):
 
             with ui.HStack(height=20):
 
+                ui.Label('GPU', width=20) 
+                WarpModel = ui.CheckBox(width=30)
+                WarpModel.model.add_value_changed_fn(lambda m : setattr(self, 'gpu_flag', m.get_value_as_bool()))
+                WarpModel.model.set_value(True)
+
+                ui.Label('Use Instances', width=20) 
+                SFModel = ui.CheckBox(width=30)
+                SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'instancer_flag', m.get_value_as_bool()))
+                SFModel.model.set_value(True)
+
                 ui.Label('Add Jane', width=5) 
                 RigidBody = ui.CheckBox(width=30)
                 RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'jane_flag', m.get_value_as_bool()))
+                RigidBody.model.set_value(False)
+
+                ui.Label('Use Direction', width=5) 
+                RigidBody = ui.CheckBox(width=30)
+                RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'heading_flag', m.get_value_as_bool()))
                 RigidBody.model.set_value(False)
 
                 ui.Label('Rigid Body', width=5) 
@@ -90,21 +105,6 @@ def make_window_elements(self, _window, Sim):
                 SFModel = ui.CheckBox(width=30)
                 SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'pam_flag', m.get_value_as_bool()))
                 SFModel.model.set_value(False)
-
-                ui.Label('Use Instances', width=20) 
-                SFModel = ui.CheckBox(width=30)
-                SFModel.model.add_value_changed_fn(lambda m : setattr(self, 'instancer_flag', m.get_value_as_bool()))
-                SFModel.model.set_value(False)
-
-                ui.Label('Use Direction', width=5) 
-                RigidBody = ui.CheckBox(width=30)
-                RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'heading_flag', m.get_value_as_bool()))
-                RigidBody.model.set_value(False)
-
-                ui.Label('GPU', width=20) 
-                WarpModel = ui.CheckBox(width=30)
-                WarpModel.model.add_value_changed_fn(lambda m : setattr(self, 'gpu_flag', m.get_value_as_bool()))
-                WarpModel.model.set_value(False)
 
                 # options = ["GeomPoints", "RigidBody"]
 
