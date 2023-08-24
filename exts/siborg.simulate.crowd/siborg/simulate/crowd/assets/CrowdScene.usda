@@ -1,0 +1,359 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary cameraSettings = {
+            dictionary Front = {
+                double3 position = (0, 0, 50000)
+                double radius = 500
+            }
+            dictionary Perspective = {
+                double3 position = (80.46776230846194, 42.394272567109745, 36.67397931271769)
+                double3 target = (32.58766492125771, 12.0031527364326, 4.3973706275524265)
+            }
+            dictionary Right = {
+                double3 position = (-50000, 0, 0)
+                double radius = 500
+            }
+            dictionary Top = {
+                double3 position = (0, 50000, 0)
+                double radius = 500
+            }
+            string boundCamera = "/OmniverseKit_Persp"
+        }
+        dictionary omni_layer = {
+            string authoring_layer = "./CrowdScene.usda"
+            dictionary muteness = {
+            }
+        }
+        dictionary renderSettings = {
+            float3 "rtx:debugView:pixelDebug:textColor" = (0, 1e18, 0)
+            float3 "rtx:fog:fogColor" = (0.75, 0.75, 0.75)
+            bool "rtx:indirectDiffuse:enabled" = 1
+            float3 "rtx:post:backgroundZeroAlpha:backgroundDefaultColor" = (0, 0, 0)
+            float3 "rtx:post:colorcorr:contrast" = (1, 1, 1)
+            float3 "rtx:post:colorcorr:gain" = (1, 1, 1)
+            float3 "rtx:post:colorcorr:gamma" = (1, 1, 1)
+            float3 "rtx:post:colorcorr:offset" = (0, 0, 0)
+            float3 "rtx:post:colorcorr:saturation" = (1, 1, 1)
+            float3 "rtx:post:colorgrad:blackpoint" = (0, 0, 0)
+            float3 "rtx:post:colorgrad:contrast" = (1, 1, 1)
+            float3 "rtx:post:colorgrad:gain" = (1, 1, 1)
+            float3 "rtx:post:colorgrad:gamma" = (1, 1, 1)
+            float3 "rtx:post:colorgrad:lift" = (0, 0, 0)
+            float3 "rtx:post:colorgrad:multiply" = (1, 1, 1)
+            float3 "rtx:post:colorgrad:offset" = (0, 0, 0)
+            float3 "rtx:post:colorgrad:whitepoint" = (1, 1, 1)
+            float3 "rtx:post:lensDistortion:lensFocalLengthArray" = (10, 30, 50)
+            float3 "rtx:post:lensFlares:anisoFlareFalloffX" = (450, 475, 500)
+            float3 "rtx:post:lensFlares:anisoFlareFalloffY" = (10, 10, 10)
+            float3 "rtx:post:lensFlares:cutoffPoint" = (2, 2, 2)
+            double "rtx:post:lensFlares:flareScale" = 0.075
+            float3 "rtx:post:lensFlares:haloFlareFalloff" = (10, 10, 10)
+            float3 "rtx:post:lensFlares:haloFlareRadius" = (75, 75, 75)
+            float3 "rtx:post:lensFlares:isotropicFlareFalloff" = (50, 50, 50)
+            float3 "rtx:post:tonemap:whitepoint" = (1, 1, 1)
+            float3 "rtx:raytracing:inscattering:singleScatteringAlbedo" = (0.9, 0.9, 0.9)
+            float3 "rtx:raytracing:inscattering:transmittanceColor" = (0.5, 0.5, 0.5)
+            float3 "rtx:sceneDb:ambientLightColor" = (0, 0, 0)
+        }
+    }
+    defaultPrim = "World"
+    endTimeCode = 100
+    metersPerUnit = 1
+    startTimeCode = 0
+    timeCodesPerSecond = 24
+    upAxis = "Y"
+)
+
+def Xform "World"
+{
+    def Scope "Scope"
+    {
+        token visibility = "invisible"
+
+        def Xform "CrowdBob" (
+            prepend references = @./CrowdBob.usda@
+        )
+        {
+            token visibility = "inherited"
+        }
+
+        def Xform "CrowdJane" (
+            prepend references = @./CrowdBob.usda@
+        )
+        {
+            over "Looks"
+            {
+                over "Linen_Blue"
+                {
+                    over "Shader"
+                    {
+                        color3f inputs:diffuse_tint = (0.081990406, 0.84942085, 0.20051248) (
+                            customData = {
+                                float3 default = (1, 1, 1)
+                            }
+                            displayGroup = "Albedo"
+                            displayName = "Color Tint"
+                            doc = "When enabled, this color value is multiplied over the final albedo color"
+                            hidden = false
+                        )
+                    }
+                }
+
+                over "Linen_Blue_01"
+                {
+                    over "Shader"
+                    {
+                        color3f inputs:diffuse_tint = (0.08235294, 0.8509804, 0.2) (
+                            customData = {
+                                float3 default = (1, 1, 1)
+                            }
+                            displayGroup = "Albedo"
+                            displayName = "Color Tint"
+                            doc = "When enabled, this color value is multiplied over the final albedo color"
+                            hidden = false
+                        )
+                    }
+                }
+
+                over "Linen_Blue_02"
+                {
+                    over "Shader"
+                    {
+                        color3f inputs:diffuse_tint = (0.08235294, 0.8509804, 0.2) (
+                            customData = {
+                                float3 default = (1, 1, 1)
+                            }
+                            displayGroup = "Albedo"
+                            displayName = "Color Tint"
+                            doc = "When enabled, this color value is multiplied over the final albedo color"
+                            hidden = false
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    def Xform "Obstacles"
+    {
+        double3 xformOp:rotateXYZ = (0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def Mesh "Cube"
+        {
+            float3[] extent = [(-0.5, -0.5, -0.5), (0.5, 0.5, 0.5)]
+            int[] faceVertexCounts = [4, 4, 4, 4, 4, 4]
+            int[] faceVertexIndices = [0, 1, 3, 2, 4, 6, 7, 5, 4, 5, 1, 0, 6, 2, 3, 7, 4, 0, 2, 6, 5, 7, 3, 1]
+            normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, 0, -1), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, -1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (-1, 0, 0), (1, 0, 0), (1, 0, 0), (1, 0, 0), (1, 0, 0)] (
+                interpolation = "faceVarying"
+            )
+            point3f[] points = [(-0.5, -0.5, 0.5), (0.5, -0.5, 0.5), (-0.5, 0.5, 0.5), (0.5, 0.5, 0.5), (-0.5, -0.5, -0.5), (0.5, -0.5, -0.5), (-0.5, 0.5, -0.5), (0.5, 0.5, -0.5)]
+            float2[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1), (1, 0), (0, 0), (0, 1), (1, 1), (0, 0), (0, 1), (1, 1), (1, 0), (0, 0), (0, 1), (1, 1), (1, 0), (0, 0), (1, 0), (1, 1), (0, 1), (1, 0), (0, 0), (0, 1), (1, 1)] (
+                interpolation = "faceVarying"
+            )
+            uniform token subdivisionScheme = "none"
+            double3 xformOp:rotateXYZ = (0, 0, 0)
+            double3 xformOp:scale = (57.635220175258425, 1, 4.3842230989139495)
+            double3 xformOp:translate = (0, 0, 8.333791827879843)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+    }
+
+    def PhysicsScene "physicsScene" (
+        prepend apiSchemas = ["PhysxSceneAPI"]
+    )
+    {
+        vector3f physics:gravityDirection = (0, -1, 0)
+        float physics:gravityMagnitude = 9.81
+        bool physxScene:enableCCD = 1
+    }
+
+    def Xform "GroundPlane"
+    {
+        quatf xformOp:orient = (1, 0, 0, 0)
+        float3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def Mesh "CollisionMesh"
+        {
+            uniform bool doubleSided = 0
+            int[] faceVertexCounts = [4]
+            int[] faceVertexIndices = [0, 1, 2, 3]
+            normal3f[] normals = [(0, 1, 0), (0, 1, 0), (0, 1, 0), (0, 1, 0)]
+            point3f[] points = [(-1, 0, -1), (1, 0, -1), (1, 0, 1), (-1, 0, 1)]
+            color3f[] primvars:displayColor = [(0.5, 0.5, 0.5)]
+        }
+
+        def Plane "CollisionPlane" (
+            prepend apiSchemas = ["PhysicsCollisionAPI"]
+        )
+        {
+            uniform token axis = "Y"
+            uniform token purpose = "guide"
+        }
+    }
+
+    def Xform "CrowdGoals"
+    {
+        double3 xformOp:rotateXYZ = (0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+        def Xform "Xform"
+        {
+            double3 xformOp:rotateXYZ = (0, 0, 0)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (7.798536727464473, 6.359357485052897e-12, 22.363554227782963)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+    }
+
+    def PointInstancer "PointInstancer_Bob"
+    {
+        quath[] orientations = [(1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0)]
+        point3f[] positions = [(7.9937773, 0, -2.9361718), (7.1160455, 0, -0.83167183), (6.58986, 0, 1.5302762), (9.892844, 0, -3.3424935), (9.195841, 0, -1.4323895), (8.783063, 0, 0.94664675), (11.687804, 0, -3.8096833), (11.12477, 0, -2.0992565), (10.732512, 0, -0.20368426)]
+        int[] protoIndices = [0, 0, 0, 0, 0, 0, 0, 0, 0]
+        rel prototypes = </World/Scope/CrowdBob>
+        float3[] scales = [(1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1)]
+    }
+}
+
+def Xform "Environment"
+{
+    int ground:size = 1400
+    string ground:type = "On"
+    double3 xformOp:rotateXYZ = (0, 0, 0)
+    double3 xformOp:scale = (1, 1, 1)
+    double3 xformOp:translate = (0, 0, 0)
+    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+
+    def DomeLight "Sky" (
+        prepend apiSchemas = ["ShapingAPI"]
+    )
+    {
+        float colorTemperature = 6250
+        bool enableColorTemperature = 1
+        float exposure = 9
+        float intensity = 1
+        float shaping:cone:angle = 180
+        float shaping:cone:softness
+        float shaping:focus
+        color3f shaping:focusTint
+        asset shaping:ies:file
+        asset texture:file = @https://omniverse-content-production.s3.us-west-2.amazonaws.com/Assets/Scenes/Templates/Default/SubUSDs/textures/CarLight_512x256.hdr@
+        token texture:format = "latlong"
+        token visibility = "inherited"
+        double3 xformOp:rotateXYZ = (-90, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 305, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def DistantLight "DistantLight" (
+        prepend apiSchemas = ["ShapingAPI"]
+    )
+    {
+        float angle = 2.5
+        float colorTemperature = 7250
+        bool enableColorTemperature = 1
+        float exposure = 10
+        float intensity = 1
+        float shaping:cone:angle = 180
+        float shaping:cone:softness
+        float shaping:focus
+        color3f shaping:focusTint
+        asset shaping:ies:file
+        token visibility = "inherited"
+        double3 xformOp:rotateXYZ = (-90, 0, -15)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 305, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+
+    def Scope "Looks"
+    {
+        def Material "Grid"
+        {
+            token outputs:mdl:displacement.connect = </Environment/Looks/Grid/Shader.outputs:out>
+            token outputs:mdl:surface.connect = </Environment/Looks/Grid/Shader.outputs:out>
+            token outputs:mdl:volume.connect = </Environment/Looks/Grid/Shader.outputs:out>
+
+            def Shader "Shader"
+            {
+                uniform token info:implementationSource = "sourceAsset"
+                uniform asset info:mdl:sourceAsset = @OmniPBR.mdl@
+                uniform token info:mdl:sourceAsset:subIdentifier = "OmniPBR"
+                float inputs:albedo_add = 0
+                float inputs:albedo_brightness = 0.52
+                float inputs:albedo_desaturation = 1
+                asset inputs:diffuse_texture = @https://omniverse-content-production.s3.us-west-2.amazonaws.com/Assets/Scenes/Templates/Default/SubUSDs/textures/ov_uv_grids_basecolor_1024.png@ (
+                    colorSpace = "sRGB"
+                    customData = {
+                        asset default = @@
+                    }
+                )
+                bool inputs:project_uvw = 0
+                float inputs:reflection_roughness_constant = 0.333
+                float inputs:texture_rotate = 0 (
+                    customData = {
+                        float default = 0
+                    }
+                )
+                float2 inputs:texture_scale = (0.5, 0.5) (
+                    customData = {
+                        float2 default = (1, 1)
+                    }
+                )
+                float2 inputs:texture_translate = (0, 0) (
+                    customData = {
+                        float2 default = (0, 0)
+                    }
+                )
+                bool inputs:world_or_object = 0 (
+                    customData = {
+                        bool default = 0
+                    }
+                )
+                token outputs:out (
+                    renderType = "material"
+                )
+            }
+        }
+    }
+
+    def Mesh "ground" (
+        prepend apiSchemas = ["PhysicsCollisionAPI", "PhysxCollisionAPI", "PhysxConvexHullCollisionAPI", "PhysicsMeshCollisionAPI", "PhysxCookedDataAPI:convexHull"]
+    )
+    {
+        float3[] extent = [(-1400, -1400, 0), (1400, 1400, 0)]
+        int[] faceVertexCounts = [4]
+        int[] faceVertexIndices = [0, 1, 3, 2]
+        rel material:binding = </Environment/Looks/Grid> (
+            bindMaterialAs = "weakerThanDescendants"
+        )
+        normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1)] (
+            interpolation = "faceVarying"
+        )
+        uniform token physics:approximation = "convexHull"
+        bool physics:collisionEnabled = 1
+        int physxConvexHullCollision:hullVertexLimit = 8
+        uchar[] physxCookedData:convexHull:buffer = [9, 89, 8, 210, 138, 145, 110, 170, 163, 72, 159, 161, 34, 185, 110, 180, 86, 78, 88, 83, 1, 67, 86, 88, 77, 14, 0, 0, 0, 0, 0, 0, 0, 73, 67, 69, 1, 67, 76, 72, 76, 9, 0, 0, 0, 5, 0, 0, 0, 8, 128, 0, 0, 5, 0, 0, 0, 16, 0, 0, 0, 0, 0, 47, 196, 0, 0, 47, 196, 18, 2, 123, 63, 0, 0, 47, 196, 0, 0, 47, 196, 111, 18, 3, 186, 0, 0, 47, 68, 0, 0, 47, 196, 111, 18, 3, 186, 0, 0, 47, 196, 0, 0, 47, 68, 111, 18, 3, 186, 0, 0, 47, 68, 0, 0, 47, 68, 111, 18, 3, 58, 88, 189, 191, 52, 88, 189, 63, 53, 0, 0, 128, 191, 111, 18, 131, 185, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 128, 191, 0, 0, 0, 0, 0, 0, 47, 196, 4, 0, 3, 3, 0, 0, 128, 191, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, 196, 7, 0, 3, 2, 47, 190, 63, 181, 37, 176, 55, 58, 252, 255, 127, 63, 211, 34, 251, 190, 10, 0, 3, 2, 37, 176, 55, 58, 85, 189, 63, 181, 252, 255, 127, 63, 211, 34, 251, 190, 13, 0, 3, 3, 4, 2, 1, 3, 0, 1, 2, 0, 3, 1, 4, 3, 0, 4, 0, 2, 0, 4, 0, 1, 0, 2, 0, 3, 1, 2, 1, 4, 2, 3, 3, 4, 1, 2, 3, 0, 1, 2, 0, 1, 4, 0, 2, 3, 0, 3, 4, 4, 0, 2, 0, 2, 0, 1, 0, 1, 0, 3, 0, 3, 0, 4, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0, 0, 3, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 47, 196, 0, 0, 47, 196, 0, 20, 3, 186, 0, 0, 47, 68, 0, 0, 47, 68, 18, 2, 123, 63, 131, 121, 28, 73, 95, 125, 175, 81, 115, 252, 233, 208, 181, 173, 39, 76, 115, 252, 233, 208, 95, 125, 175, 81, 181, 173, 39, 76, 181, 173, 39, 76, 181, 173, 39, 76, 87, 125, 47, 82, 255, 255, 46, 195, 255, 255, 46, 195, 77, 225, 122, 62, 0, 0, 128, 191, 0, 0, 128, 191, 253, 83, 123, 62, 192, 121, 161, 67, 181, 26, 17, 62, 181, 26, 17, 62]
+        point3f[] points = [(-700, -700, 0), (700, -700, 0), (-700, 700, 0), (700, 700, 0)]
+        bool primvars:isMatteObject = 0
+        float2[] primvars:st = [(0, 0), (14, 0), (14, 14), (0, 14)] (
+            interpolation = "faceVarying"
+        )
+        uniform token subdivisionScheme = "none"
+        token visibility = "inherited"
+        double3 xformOp:rotateXYZ = (0, -90, -90)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+    }
+}
+
