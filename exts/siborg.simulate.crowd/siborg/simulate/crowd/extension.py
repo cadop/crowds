@@ -109,7 +109,8 @@ class SFsim(omni.ext.IExt):
         self.stage = omni.usd.get_context().get_stage()
         # Use the meshes that are 
         parent_prim =  self.stage.GetPrimAtPath(self.obstacle_prim_path)
-        points, faces = usd_utils.children_as_mesh(self.stage, parent_prim)
+        # points, faces = usd_utils.children_as_mesh(self.stage, parent_prim)
+        points, faces = usd_utils.get_all_stage_mesh(self.stage,parent_prim)
         self.Sim.config_mesh(points, faces)
 
     def api_example(self):
