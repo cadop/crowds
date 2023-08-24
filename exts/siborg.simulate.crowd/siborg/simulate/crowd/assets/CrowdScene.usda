@@ -7,8 +7,8 @@
                 double radius = 500
             }
             dictionary Perspective = {
-                double3 position = (80.46776230846194, 42.394272567109745, 36.67397931271769)
-                double3 target = (32.58766492125771, 12.0031527364326, 4.3973706275524265)
+                double3 position = (103.71375047007173, 51.95615147329011, 14.547742507718404)
+                double3 target = (-14.06700387613148, -13.80022744459982, -25.91448621078721)
             }
             dictionary Right = {
                 double3 position = (-50000, 0, 0)
@@ -20,40 +20,21 @@
             }
             string boundCamera = "/OmniverseKit_Persp"
         }
+        dictionary navmeshSettings = {
+            double agentHeight = 180
+            double agentRadius = 20
+            bool excludeRigidBodies = 1
+            int ver = 1
+            double voxelCeiling = 460
+        }
         dictionary omni_layer = {
             string authoring_layer = "./CrowdScene.usda"
             dictionary muteness = {
             }
         }
         dictionary renderSettings = {
-            float3 "rtx:debugView:pixelDebug:textColor" = (0, 1e18, 0)
-            float3 "rtx:fog:fogColor" = (0.75, 0.75, 0.75)
-            bool "rtx:indirectDiffuse:enabled" = 1
-            float3 "rtx:post:backgroundZeroAlpha:backgroundDefaultColor" = (0, 0, 0)
-            float3 "rtx:post:colorcorr:contrast" = (1, 1, 1)
-            float3 "rtx:post:colorcorr:gain" = (1, 1, 1)
-            float3 "rtx:post:colorcorr:gamma" = (1, 1, 1)
-            float3 "rtx:post:colorcorr:offset" = (0, 0, 0)
-            float3 "rtx:post:colorcorr:saturation" = (1, 1, 1)
-            float3 "rtx:post:colorgrad:blackpoint" = (0, 0, 0)
-            float3 "rtx:post:colorgrad:contrast" = (1, 1, 1)
-            float3 "rtx:post:colorgrad:gain" = (1, 1, 1)
-            float3 "rtx:post:colorgrad:gamma" = (1, 1, 1)
-            float3 "rtx:post:colorgrad:lift" = (0, 0, 0)
-            float3 "rtx:post:colorgrad:multiply" = (1, 1, 1)
-            float3 "rtx:post:colorgrad:offset" = (0, 0, 0)
-            float3 "rtx:post:colorgrad:whitepoint" = (1, 1, 1)
-            float3 "rtx:post:lensDistortion:lensFocalLengthArray" = (10, 30, 50)
-            float3 "rtx:post:lensFlares:anisoFlareFalloffX" = (450, 475, 500)
-            float3 "rtx:post:lensFlares:anisoFlareFalloffY" = (10, 10, 10)
-            float3 "rtx:post:lensFlares:cutoffPoint" = (2, 2, 2)
+            bool "rtx:pathtracing:mgpu:autoLoadBalancing:enabled" = 0
             double "rtx:post:lensFlares:flareScale" = 0.075
-            float3 "rtx:post:lensFlares:haloFlareFalloff" = (10, 10, 10)
-            float3 "rtx:post:lensFlares:haloFlareRadius" = (75, 75, 75)
-            float3 "rtx:post:lensFlares:isotropicFlareFalloff" = (50, 50, 50)
-            float3 "rtx:post:tonemap:whitepoint" = (1, 1, 1)
-            float3 "rtx:raytracing:inscattering:singleScatteringAlbedo" = (0.9, 0.9, 0.9)
-            float3 "rtx:raytracing:inscattering:transmittanceColor" = (0.5, 0.5, 0.5)
             float3 "rtx:sceneDb:ambientLightColor" = (0, 0, 0)
         }
     }
@@ -208,18 +189,9 @@ def Xform "World"
         {
             double3 xformOp:rotateXYZ = (0, 0, 0)
             double3 xformOp:scale = (1, 1, 1)
-            double3 xformOp:translate = (7.798536727464473, 6.359357485052897e-12, 22.363554227782963)
+            double3 xformOp:translate = (6.3176958930090095, 6.30961949354969e-12, -9.385301605983656)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
         }
-    }
-
-    def PointInstancer "PointInstancer_Bob"
-    {
-        quath[] orientations = [(1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0), (1, 0, 0, 0)]
-        point3f[] positions = [(7.9937773, 0, -2.9361718), (7.1160455, 0, -0.83167183), (6.58986, 0, 1.5302762), (9.892844, 0, -3.3424935), (9.195841, 0, -1.4323895), (8.783063, 0, 0.94664675), (11.687804, 0, -3.8096833), (11.12477, 0, -2.0992565), (10.732512, 0, -0.20368426)]
-        int[] protoIndices = [0, 0, 0, 0, 0, 0, 0, 0, 0]
-        rel prototypes = </World/Scope/CrowdBob>
-        float3[] scales = [(1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1), (1, 1, 1)]
     }
 }
 

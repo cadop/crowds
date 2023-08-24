@@ -10,6 +10,8 @@ from . import simulator
 from .env import Environment
 from . import usd_utils
 
+
+
 class SFsim(omni.ext.IExt):
     # ext_id is current extension id. It can be used with extension manager to query
     #  additional information, like where this extension is located on filesystem.
@@ -97,7 +99,10 @@ class SFsim(omni.ext.IExt):
         new_goals = []
         for x in self.goal_prim_dict.keys():
             _prim = x
-            t = omni.usd.utils.get_world_transform_matrix(_prim).ExtractTranslation()
+            try:
+                t = omni.usd.get_world_transform_matrix(_prim).ExtractTranslation()
+            except:
+                t = omni.usd.utils.get_world_transform_matrix(_prim).ExtractTranslation()
             new_goals.append(t)
 
         if len(new_goals) == 0: 
