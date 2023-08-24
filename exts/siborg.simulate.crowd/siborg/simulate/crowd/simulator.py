@@ -516,8 +516,8 @@ class WarpCrowd(Simulator):
             points = [(0,0,0), (0,0,0), (0,0,0)]
             faces = [[1, 2, 3]]
 
-        print(points)
-        print(faces)
+        # print(points)
+        # print(faces)
 
         # Init mesh for environment collision
         self.mesh = wp.Mesh( points=wp.array(points, dtype=wp.vec3, device=self.device),
