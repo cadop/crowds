@@ -25,7 +25,12 @@ class Simulator(CrowdConfig):
 
         # a default dt that is surely overwritten later
         self._dt = 1/60.0
-        
+
+        # set radius
+        self.radius = 0.7
+        self.radius_min = 0.5
+        self.radius_max = 1.0
+
         # A subscription to the physics simulation, used when this class
         # is asked to manage the updates
         self._simulation_event = None
@@ -278,7 +283,8 @@ class Simulator(CrowdConfig):
         self.agent_point_prim.CreatePointsAttr()
 
         width_attr = self.agent_point_prim.CreateWidthsAttr()
-        width_attr.Set([1 for x in range(self.nagents)])
+        width_attr.Set(self.agents_radi)
+        # width_attr.Set([1 for x in range(self.nagents)])
 
         self.agent_point_prim.CreateDisplayColorAttr()
         # For RTX renderers, this only works for UsdGeom.Tokens.constant
@@ -289,7 +295,11 @@ class Simulator(CrowdConfig):
         color_primvar.Set([point_color])
 
     def set_geompoints(self):
-        self.agent_point_prim.GetPointsAttr().Set(self.agents_pos)
+        # Set the position with an offset based on the radius
+        # Since it is a sphere, we 
+        render_pos = np.copy(self.agents_pos)
+        render_pos[:,1] += (self.agents_radi/2) 
+        self.agent_point_prim.GetPointsAttr().Set(render_pos)
 
     def create_instance_agents(self):
         
@@ -325,7 +335,10 @@ class Simulator(CrowdConfig):
         self.proto_indices_attr = point_instancer.CreateProtoIndicesAttr()
         self.proto_indices_attr.Set([0] * nagents)
 
-        self.agent_instancer_scales = [(1.0,1.0,1.0) for x in range(nagents)] # change to numpy 
+        ## max radius is scale of 1
+        agent_scales = self.agents_radi/self.radius_max
+        self.agent_instancer_scales = [(x,x,x) for x in agent_scales] # change to numpy 
+
         # Set scale
         point_instancer.GetScalesAttr().Set(self.agent_instancer_scales)
         point_instancer.GetPositionsAttr().Set(agent_pos)   
@@ -441,7 +454,7 @@ class WarpCrowd(Simulator):
 
         self.on_gpu = True
 
-    def demo_agents(self, s=1.1, m=50, n=50):
+    def demo_agents(self, s=1.6, m=50, n=50):
         # Initialize agents in a grid for testing
         self.agents_pos = np.asarray([
                                       np.array([(s/2) + (x * s), (s/2) + (y * s), 0], dtype=np.double) 
