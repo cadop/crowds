@@ -133,7 +133,7 @@ class SFsim(omni.ext.IExt):
     def demo_api_call(self, Sim):
         # Use the builtin function for demo agents
         Sim.rigidbody = self.rigid_flag 
-        Sim.init_demo_agents(m=self.grid_size,n=self.grid_size,s=1.1)
+        Sim.init_demo_agents(m=self.grid_size,n=self.grid_size,s=1.6)
 
         if self.pam_flag:
             Sim.use_pam = True
