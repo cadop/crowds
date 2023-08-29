@@ -94,7 +94,7 @@ def make_window_elements(self, _window, Sim):
                 ui.Label('Use Direction', width=5) 
                 RigidBody = ui.CheckBox(width=30)
                 RigidBody.model.add_value_changed_fn(lambda m : setattr(self, 'heading_flag', m.get_value_as_bool()))
-                RigidBody.model.set_value(False)
+                RigidBody.model.set_value(True)
 
                 ui.Label('Rigid Body', width=5) 
                 RigidBody = ui.CheckBox(width=30)
