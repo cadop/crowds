@@ -5,6 +5,11 @@ import omni.ui as ui
 import omni.usd
 from omni.physx import get_physx_interface
 
+try:
+    from omni.usd import get_world_transform_matrix
+except:
+    from omni.usd.utils import get_world_transform_matrix
+
 from . import window
 from . import simulator
 from .env import Environment
@@ -133,6 +138,16 @@ class SFsim(omni.ext.IExt):
     def demo_api_call(self, Sim):
         # Use the builtin function for demo agents
         Sim.rigidbody = self.rigid_flag 
+        # Set origin for spawning agents
+        self.stage = omni.usd.get_context().get_stage()
+
+        parent_prim =  self.stage.GetPrimAtPath('/World/GenerationOrigin')        
+        Sim.generation_origin = [0,0,0]
+        if parent_prim:
+            Sim.generation_origin = get_world_transform_matrix(parent_prim).ExtractTranslation()
+            Sim.generation_origin[2] = Sim.generation_origin[1]
+
+
         Sim.init_demo_agents(m=self.grid_size,n=self.grid_size,s=1.6)
 
         if self.pam_flag:

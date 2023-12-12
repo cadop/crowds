@@ -448,6 +448,7 @@ class WarpCrowd(Simulator):
         # self.dt = 1.0/30.0
 
         self.goal = [0.0,0.0,0.0]
+        self.generation_origin = [10,10.0,0.0]
 
         self.inv_up = wp.vec3(1.0,1.0,1.0) # z-up
         self.inv_up[self.world_up] = 0.0  
@@ -455,9 +456,14 @@ class WarpCrowd(Simulator):
         self.on_gpu = True
 
     def demo_agents(self, s=1.6, m=50, n=50):
+        o = self.generation_origin
+
         # Initialize agents in a grid for testing
         self.agents_pos = np.asarray([
-                                      np.array([(s/2) + (x * s), (s/2) + (y * s), 0], dtype=np.double) 
+                                      np.array([(s/2) + (x * s) +(o[0]/2) ,
+                                                (s/2) + (y * s) +(o[1]/2),
+                                                 0
+                                                ], dtype=np.double) 
                                       for x in range(m) 
                                       for y in range(n)
                                     ])
@@ -512,7 +518,8 @@ class WarpCrowd(Simulator):
         '''
 
         if nagents is None: nagents = self.nagents
-        self.grid = wp.HashGrid(dim_x=nagents, dim_y=nagents, dim_z=1, device=self.device)
+        self.grid = wp.HashGrid(dim_x=200, dim_y=200, dim_z=1, device=self.device)
+        # self.grid = wp.HashGrid(dim_x=nagents, dim_y=nagents, dim_z=1, device=self.device)
 
     def config_mesh(self, points, faces):
         '''Create a warp mesh object from points and faces

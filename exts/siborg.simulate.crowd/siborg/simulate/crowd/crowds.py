@@ -142,7 +142,7 @@ class CrowdConfig:
         else:
             self.agents_percept = np.asarray([self.perception_radius for x in range(self.nagents)])
 
-    def init_demo_agents(self, m=5, n=5, s=1):
+    def init_demo_agents(self, m=5, n=5, s=1, o=[0,0,0]):
         '''Create a set of demo agents
 
         Parameters
@@ -154,13 +154,23 @@ class CrowdConfig:
         s : int, optional
             spacing between agents, by default 1
         '''
-
+        o = self.generation_origin
         # Initialize agents in a grid for testing
         self.agents_pos = np.asarray([
-                                      np.array([(s/2) + (x * s), (s/2) + (y * s), 0], dtype=np.double) 
+                                      np.array([(s/2) + (x * s) +(o[0]/2) ,
+                                                (s/2) + (y * s) +(o[1]/2),
+                                                 0],
+                                                dtype=np.double)
                                       for x in range(m) 
                                       for y in range(n)
                                     ])
+        
+        # # Initialize agents in a grid for testing
+        # self.agents_pos = np.asarray([
+        #                               np.array([(s/2) + (x * s), (s/2) + (y * s), 0], dtype=np.double) 
+        #                               for x in range(m) 
+        #                               for y in range(n)
+        #                             ])
 
         self.agents_pos[:, [2, self.world_up]] = self.agents_pos[:, [self.world_up, 2]]
 
