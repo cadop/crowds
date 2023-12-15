@@ -1,6 +1,8 @@
 
 ![preview](https://user-images.githubusercontent.com/11399119/226725400-fa9054e3-a13f-4a9f-8294-d08cbee51519.PNG)
 
+This repository is for the omniverse extension for crowd simulation. If you are looking for a project that can be run without omniverse, checkout [Python-only crowd simulation](https://github.com/cadop/warpcrowd)
+
 A crowd simulator API with a default demo scene. The main python API can be used in a few ways. There is an examples folder showing a few use-cases. Users can also switch between social forces and PAM as the crowds algorithm. 
 
 The extension will load an populate some demo configuration. It will create an Xform called CrowdGoals.  To add a goal for the crowd. Create an xform under the "CrowdGoals". We automatically check for those prims as the method of determing crowd goals.  For every additional xform under CrowdGoals, we evenly split the crowd to assign those goals. 
